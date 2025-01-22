@@ -67,7 +67,7 @@ export async function POST(req) {
 
     await joke.save();
 
-    console.log(`User ${userId} ${userAlreadyLiked ? 'removed like from' : 'liked'} joke ${jokeId}.`);
+    // console.log(`User ${userId} ${userAlreadyLiked ? 'removed like from' : 'liked'} joke ${jokeId}.`);
 
     return new Response(
       JSON.stringify({

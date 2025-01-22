@@ -1,9 +1,9 @@
-"use client";
+'use client';
 
-import React, { useEffect, useState } from "react";
-import { useParams } from "next/navigation";
-import Navbar from "@/components/Navbar";
-import LikeButton from "@/components/LikeButton";
+import React, { useEffect, useState } from 'react';
+import { useParams } from 'next/navigation';
+import Navbar from '@/components/Navbar';
+import LikeButton from '@/components/LikeButton';
 
 const JokePage = () => {
   const { jokes } = useParams(); // Use useParams for dynamic route parameters
@@ -17,8 +17,8 @@ const JokePage = () => {
 
     const fetchUser = async () => {
       try {
-        const res = await fetch(`http://localhost:3000/api/user/${jokes}`);
-        if (!res.ok) throw new Error("Failed to fetch user details");
+        const res = await fetch(`/api/jokes/${jokes}`); // Fetch user by ID
+        if (!res.ok) throw new Error('Failed to fetch user details');
 
         const data = await res.json();
         setUser(data.user);
@@ -39,23 +39,21 @@ const JokePage = () => {
   // Function to format the creation date
   const formatDate = (dateString) => {
     const date = new Date(dateString);
-    return date.toLocaleDateString("en-US", {
-      year: "numeric",
-      month: "short",
-      day: "numeric",
+    return date.toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
     });
   };
 
-  // Define the onLikeChange function to handle the like count update
   const onLikeChange = (jokeId) => {
-    // Find the joke by its ID and update the likes
     const updatedJokes = user.jokes.map((joke) => {
       if (joke._id === jokeId) {
-        joke.likes += 1; // Increment the like count
+        joke.likes += 1;
       }
       return joke;
     });
-    setUser((prevUser) => ({ ...prevUser, jokes: updatedJokes })); // Update the user state with the new like count
+    setUser((prevUser) => ({ ...prevUser, jokes: updatedJokes }));
   };
 
   return (
@@ -79,12 +77,11 @@ const JokePage = () => {
                   <p className="text-sm text-gray-500">
                     Created on: {formatDate(joke.createdAt)}
                   </p>
-                  {/* Pass the onLikeChange function to LikeButton */}
                   <LikeButton
                     jokeId={joke._id}
                     initialLikes={joke.likes}
-                    userId={user._id} // Pass the user._id as userId
-                    onLikeChange={onLikeChange} // Pass the function here
+                    userId={user._id}
+                    onLikeChange={onLikeChange}
                   />
                 </div>
               </div>

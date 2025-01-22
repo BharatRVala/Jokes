@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 const LikeButton = ({ jokeId, initialLikes, userId, onLikeChange }) => {
   const [likes, setLikes] = useState(initialLikes || []);
@@ -28,8 +28,8 @@ const LikeButton = ({ jokeId, initialLikes, userId, onLikeChange }) => {
       const data = await response.json();
 
       if (response.ok) {
-        setLikes(data.joke.likes);
-        onLikeChange(jokeId, data.joke.likes);
+        setLikes(data.joke.likes); // Update the likes state based on the server response
+        onLikeChange(jokeId, data.joke.likes); // Update the likes in the parent component
       } else {
         alert(data.error || 'An error occurred while liking the joke.');
       }
@@ -42,13 +42,14 @@ const LikeButton = ({ jokeId, initialLikes, userId, onLikeChange }) => {
   };
 
   return (
+    
     <button onClick={handleLike} disabled={isLiking} className="flex items-center space-x-2">
       <img
-        src={isLiked ? '/heartp.png' : '/heart.png'}
+        src={isLiked ? '/heartp.png' : '/heart.png'} // Check the 'isLiked' condition
         alt="Like"
         className="w-6 h-6"
       />
-      <span className="font-semibold">{likes.length}</span>
+      <span className="font-semibold, text-red-500">{likes.length} likes</span>
     </button>
   );
 };

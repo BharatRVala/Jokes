@@ -1,7 +1,6 @@
 import { dbConnect } from '@/lib/db';
 import { Joke } from '@/lib/model/Joke';
-import User from '@/lib/model/User'; // Ensure that User is imported
-
+import User from '@/lib/model/User'; 
 export async function GET() {
   try {
     // Connect to the database
