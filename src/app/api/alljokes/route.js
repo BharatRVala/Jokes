@@ -8,22 +8,26 @@ export async function GET() {
     await dbConnect();
 
     // Fetch all jokes and populate user details (userName field)
-    // Include a fallback for jokes with no user
     const jokes = await Joke.find()
-      .populate('user', 'userName') // Populating the 'user' field with the 'userName' from User model
+      .populate('user', 'userName') // Populate 'user' field with 'userName'
       .exec();
 
     // Add likedBy field to each joke and handle cases where user is null
     const jokesWithLikes = jokes.map((joke) => ({
       ...joke.toObject(),
       likedBy: joke.likes || [], // Ensure likedBy is always an array
-      userName: joke.user ? joke.user.userName : null, // If user is null, set userName to null
+      userName: joke.user ? joke.user.userName : null, // Set userName to null if user is null
     }));
 
-    // Return jokes as JSON response
+    // Return jokes as JSON response with CORS headers
     return new Response(JSON.stringify({ jokes: jokesWithLikes }), {
       status: 200,
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        'Access-Control-Allow-Origin': '*', // Allow requests from any origin
+        'Access-Control-Allow-Methods': 'GET, POST, OPTIONS', // Specify allowed methods
+        'Access-Control-Allow-Headers': 'Content-Type, Authorization', // Specify allowed headers
+      },
     });
   } catch (error) {
     console.error('Error fetching jokes:', error);
@@ -31,7 +35,12 @@ export async function GET() {
       JSON.stringify({ error: 'Failed to fetch jokes. Please try again.' }),
       {
         status: 500,
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'Access-Control-Allow-Origin': '*', // Include CORS headers for error response
+          'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+          'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+        },
       }
     );
   }

@@ -1,22 +1,28 @@
-"use client";
+import React, { useState, useEffect } from "react";
+import Navbar from "@/components/Navbar"; // Adjust the import path for Navbar if necessary
+import JokeCard from "@/components/JokeCard";
 
-import { useState } from 'react';
-import JokeCard from '@/components/JokeCard';
-import Navbar from '@/components/Navbar';
+export default function ClientPage() {
+  const [jokes, setJokes] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
-export default function JokesPageClient({ jokes }) {
-  const [jokesState, setJokesState] = useState(jokes);
-  const userId = "user123"; // Replace with actual user ID logic (e.g., from session)
+  // Temporarily use mock data for jokes
+  useEffect(() => {
+    const mockJokes = [
+      { _id: "1", content: "Why don't programmers like nature? It has too many bugs.", likes: [] },
+      { _id: "2", content: "Why do programmers prefer dark mode? Because light attracts bugs!", likes: [] },
+    ];
+    setJokes(mockJokes);
+    setLoading(false);
+  }, []);
 
   const handleLikeChange = (jokeId, updatedLikes) => {
-    // Update the jokes list with the new likes for the specific joke
-    setJokesState((prev) =>
-      prev.map((joke) =>
+    setJokes((prevJokes) =>
+      prevJokes.map((joke) =>
         joke._id === jokeId ? { ...joke, likes: updatedLikes } : joke
       )
     );
-    console.log("Updated jokes state:", jokesState);
-
   };
 
   return (
@@ -24,14 +30,22 @@ export default function JokesPageClient({ jokes }) {
       <Navbar />
       <div className="max-w-4xl mx-auto p-6 bg-white rounded-lg shadow-lg mt-8">
         <h1 className="text-2xl text-blue-600 font-bold mb-4">All Jokes</h1>
-        {jokesState.map((joke) => (
-          <JokeCard
-            key={joke._id}
-            joke={joke}
-            userId={userId}
-            onLikeChange={handleLikeChange}
-          />
-        ))}
+        {loading ? (
+          <p className="text-gray-500">Loading jokes...</p>
+        ) : error ? (
+          <p className="text-red-500">Error: {error}</p>
+        ) : jokes.length === 0 ? (
+          <p className="text-gray-500">No jokes to display.</p>
+        ) : (
+          jokes.map((joke) => (
+            <JokeCard
+              key={joke._id}
+              joke={joke}
+              userId="user123" // Replace with dynamic user ID if needed
+              onLikeChange={handleLikeChange}
+            />
+          ))
+        )}
       </div>
     </div>
   );

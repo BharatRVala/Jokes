@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 
 const LikeButton = ({ jokeId, initialLikes, userId, onLikeChange }) => {
   const [likes, setLikes] = useState(initialLikes || []);
@@ -29,7 +29,7 @@ const LikeButton = ({ jokeId, initialLikes, userId, onLikeChange }) => {
 
       if (response.ok) {
         setLikes(data.joke.likes);
-        onLikeChange(jokeId, data.joke.likes); // Notify parent about the updated likes
+        onLikeChange(jokeId, data.joke.likes);
       } else {
         alert(data.error || 'An error occurred while liking the joke.');
       }
