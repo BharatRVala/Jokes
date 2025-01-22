@@ -4,7 +4,7 @@ export default async function JokesPage() {
   let jokes = [];
 
   try {
-    const response = await fetch('http://localhost:3000/api/alljokes', {
+    const response = await fetch('api/alljokes', {
       cache: 'no-store',
     });
     const data = await response.json();
