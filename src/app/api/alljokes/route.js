@@ -1,5 +1,6 @@
 import { dbConnect } from '@/lib/db';
 import { Joke } from '@/lib/model/Joke';
+import User from '@/lib/model/User'; // Ensure that User is imported
 
 export async function GET() {
   try {
@@ -9,7 +10,7 @@ export async function GET() {
     // Fetch all jokes and populate user details (userName field)
     // Include a fallback for jokes with no user
     const jokes = await Joke.find()
-      .populate('user', 'userName') // This populates the userName from the User model
+      .populate('user', 'userName') // Populating the 'user' field with the 'userName' from User model
       .exec();
 
     // Add likedBy field to each joke and handle cases where user is null
