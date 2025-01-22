@@ -279,7 +279,7 @@ export default function Profile() {
             <h3 className="text-xl font-bold text-blue-600 mb-4">Edit Joke</h3>
             {jokeError && <p className="text-sm text-red-500 mb-4">{jokeError}</p>}
             <textarea
-              className="w-full px-3 py-2 border rounded-lg mb-4"
+              className="w-full px-3 py-2 border rounded-lg mb-4 text-black"
               rows="4"
               value={editedJokeContent}
               onChange={(e) => setEditedJokeContent(e.target.value)}
@@ -311,7 +311,7 @@ export default function Profile() {
               <label className="block text-gray-700 font-semibold mb-2">UserName</label>
               <input
                 type="text"
-                className="w-full px-3 py-2 border rounded-lg"
+                className="w-full px-3 py-2 border rounded-lg text-black"
                 value={editedName}
                 onChange={(e) => setEditedName(e.target.value)}
               />
@@ -320,7 +320,7 @@ export default function Profile() {
               <label className="block text-gray-700 font-semibold mb-2">Email</label>
               <input
                 type="email"
-                className="w-full px-3 py-2 border rounded-lg"
+                className="w-full text-blue-2 px-3 py-2 border rounded-lg text-black"
                 value={editedEmail}
                 onChange={(e) => setEditedEmail(e.target.value)}
               />
