@@ -18,9 +18,9 @@ export async function dbConnect() {
 
   try {
     const db = await mongoose.connect(MONGO_URI, {
-      useNewUrlParser: true,
-      useUnifiedTopology: true,
-      serverSelectionTimeoutMS: 30000, // Set timeout to 30 seconds
+      // No need for deprecated options anymore
+      serverSelectionTimeoutMS: 30000, // Timeout in 30 seconds
+      // Use environment-specific options here, e.g., `useCreateIndex` if needed
     });
 
     isConnected = db.connections[0].readyState === 1;

@@ -28,7 +28,7 @@ export async function POST(req) {
 
     const cookies = cookie.serialize('auth_token', token, {
       httpOnly: false, // Set to false for frontend-accessible cookies
-      // secure: process.env.NODE_ENV === 'production', 
+      secure: process.env.NODE_ENV === 'production', 
       sameSite: 'strict',
       maxAge: 7 * 24 * 60 * 60 * 1000,
       path: '/', // Ensure the cookie is available across the app
