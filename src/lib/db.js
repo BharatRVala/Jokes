@@ -1,4 +1,3 @@
-// src/lib/db.js
 import mongoose from 'mongoose';
 
 const MONGO_URI = process.env.MONGO_URI;
@@ -18,9 +17,7 @@ export async function dbConnect() {
 
   try {
     const db = await mongoose.connect(MONGO_URI, {
-      // No need for deprecated options anymore
       serverSelectionTimeoutMS: 30000, // Timeout in 30 seconds
-      // Use environment-specific options here, e.g., `useCreateIndex` if needed
     });
 
     isConnected = db.connections[0].readyState === 1;
@@ -31,23 +28,7 @@ export async function dbConnect() {
   }
 }
 
-// Helper function to fetch user by ID from the database
-export async function getUserById(userId) {
-  const User = mongoose.models.User || mongoose.model('User', new mongoose.Schema({
-    name: { type: String, required: true },
-    email: { type: String, required: true, unique: true },
-  }));
-
-  try {
-    const user = await User.findById(userId).exec();
-    return user;
-  } catch (error) {
-    console.error('Error fetching user by ID:', error.message);
-    throw error;
-  }
-}
-
-// Helper function to fetch jokes by userId from the database
+// Exporting getJokesByUserId function
 export async function getJokesByUserId(userId) {
   const Joke = mongoose.models.Joke || mongoose.model('Joke', new mongoose.Schema({
     content: { type: String, required: true },

@@ -2,7 +2,7 @@ import bcrypt from 'bcryptjs';
 import { dbConnect } from '@/lib/db';
 import { User } from '@/lib/model/User';
 import jwt from 'jsonwebtoken';
-import cookie from 'cookie';
+import { serialize } from 'cookie';
 
 export async function POST(req) {
   try {
@@ -26,22 +26,20 @@ export async function POST(req) {
 
     const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, { expiresIn: '7d' });
 
-    const cookies = cookie.serialize('auth_token', token, {
+    const cookies = serialize('auth_token', token, {
       httpOnly: false, // Set to false for frontend-accessible cookies
       secure: process.env.NODE_ENV === 'production', 
       sameSite: 'strict',
       maxAge: 7 * 24 * 60 * 60 * 1000,
       path: '/', // Ensure the cookie is available across the app
     });
-    
 
     return new Response(JSON.stringify({ message: 'Login successful', token }), {
       status: 200,
       headers: { 'Set-Cookie': cookies },
     });
   } catch (error) {
+    console.error('Login error:', error.message);
     return new Response(JSON.stringify({ message: 'Something went wrong', error: error.message }), { status: 500 });
   }
-  
-
 }
