@@ -1,9 +1,26 @@
+'use client';
+
+import { useEffect } from "react"; // Added import for useEffect
+import { useRouter } from "next/navigation"; // Added import for useRouter
 import Image from "next/image";
+import Link from "next/link";
+import Cookies from 'js-cookie';
 
 export default function Home() {
+  const router = useRouter(); // Initializing router
+
+  useEffect(() => {
+    const token = Cookies.get('auth_token');
+
+    // Redirect to home page if user is already logged in
+    if (token) {
+      router.push('/home');
+    }
+  }, [router]);
+
   return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start">
+    <div className="grid grid-rows-[auto_1fr_auto] items-center justify-items-center min-h-screen bg-gradient-to-br from-blue-300 via-purple-400 to-pink-500 text-white p-8 sm:p-20 gap-16 font-[var(--font-geist-sans)]">
+      <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start text-center sm:text-left">
         <Image
           className="dark:invert"
           src="/next.svg"
@@ -12,44 +29,26 @@ export default function Home() {
           height={38}
           priority
         />
-        <ol className="list-inside list-decimal text-sm text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-semibold">
-              src/app/page.js
-            </code>
-            .
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
+        <h1 className="text-4xl font-semibold mb-6 text-yellow-300">Welcome to the Funniest Jokes Site!</h1>
+
+        <p className="text-lg font-[var(--font-geist-mono)] text-yellow-100">
+          Ready to get your daily dose of laughs? We’ve got a joke for every moment.
+        </p>
+        <p className="text-md font-[var(--font-geist-mono)] text-yellow-200 mb-8">
+          Sign up, log in, and start laughing with our huge collection of jokes.
+        </p>
 
         <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+          <Link
+            href="/login"
+            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-yellow-500 hover:bg-yellow-600 text-black gap-2 text-sm sm:text-base h-12 px-5 font-semibold"
           >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:min-w-44"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+            Login to Get Started
+          </Link>
         </div>
       </main>
-      <footer className="row-start-3 flex gap-6 flex-wrap items-center justify-center">
+
+      <footer className="row-start-3 flex gap-6 flex-wrap items-center justify-center text-sm sm:text-base text-yellow-100">
         <a
           className="flex items-center gap-2 hover:underline hover:underline-offset-4"
           href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
