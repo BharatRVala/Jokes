@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import Navbar from '@/components/Navbar';
 import Cookies from 'js-cookie';
 import { useRouter } from 'next/navigation';
+import LikeButton from '@/components/LikeButton';
 
 export default function Profile() {
   const [user, setUser] = useState(null);
@@ -18,7 +19,9 @@ export default function Profile() {
   const [jokeError, setJokeError] = useState('');
   const [deleteError, setDeleteError] = useState('');
   const [message, setMessage] = useState('');
-  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false); // Add state for delete confirmation
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+
+
   const router = useRouter();
 
   useEffect(() => {
@@ -117,7 +120,7 @@ export default function Profile() {
 
   const handleDeleteJoke = async (jokeId) => {
     const token = Cookies.get('auth_token');
-  
+
     try {
       const res = await fetch('/api/jokes/delete', {
         method: 'DELETE',
@@ -126,11 +129,11 @@ export default function Profile() {
           Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
-          jokeId,   // ID of the joke to delete
-          userId: user._id,  // ID of the logged-in user
+          jokeId,
+          userId: user._id,
         }),
       });
-  
+
       if (res.ok) {
         setJokes((prev) => prev.filter((joke) => joke._id !== jokeId));
       } else {
@@ -141,7 +144,6 @@ export default function Profile() {
       setDeleteError('An error occurred. Please try again.');
     }
   };
-  
 
   const handleUpdateProfile = async () => {
     const token = Cookies.get('auth_token');
@@ -173,7 +175,13 @@ export default function Profile() {
       setError('An error occurred while updating your profile.');
     }
   };
-
+  const handleLikeChange = (jokeId, updatedLikes) => {
+    setJokes((prevJokes) =>
+      prevJokes.map((joke) =>
+        joke._id === jokeId ? { ...joke, likedBy: updatedLikes } : joke
+      )
+    );
+  };
   const handleDeleteAccount = async () => {
     const token = Cookies.get('auth_token');
 
@@ -197,8 +205,6 @@ export default function Profile() {
       setError('An error occurred while deleting your account.');
     }
   };
-
-  
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -246,10 +252,19 @@ export default function Profile() {
                 <p className="text-sm text-gray-500">Posted on: {new Date(joke.createdAt).toLocaleDateString()}</p>
                 <div className="mt-2 flex justify-between items-center">
                   {/* Likes */}
-                  <div className="flex items-center space-x-2">
+                  {/* <div className="flex items-center space-x-2">
                     <img src="/heart.png" alt="Like" className="w-6 h-6" />
                     <span className="text-sm">{joke.likes?.length || 0} Likes</span>
-                  </div>
+                  </div> */}
+
+                    <LikeButton
+                    jokeId={joke._id}
+                    initialLikes={joke.likedBy}
+                    userId={user._id}
+                    onLikeChange={handleLikeChange}
+                    />
+
+
                   {/* Edit/Delete Buttons */}
                   <div className="flex space-x-4">
                     <button
@@ -367,5 +382,8 @@ export default function Profile() {
       )}
     </div>
   );
+
 }
+
+
 

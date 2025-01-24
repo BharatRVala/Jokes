@@ -83,6 +83,7 @@ const JokePage = () => {
                     userId={user._id}
                     onLikeChange={onLikeChange}
                   />
+
                 </div>
               </div>
             ))
