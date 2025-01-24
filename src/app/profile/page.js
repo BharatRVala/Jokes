@@ -4,7 +4,6 @@ import { useEffect, useState } from 'react';
 import Navbar from '@/components/Navbar';
 import Cookies from 'js-cookie';
 import { useRouter } from 'next/navigation';
-import LikeButton from '@/components/LikeButton';
 
 export default function Profile() {
   const [user, setUser] = useState(null);
@@ -20,7 +19,6 @@ export default function Profile() {
   const [deleteError, setDeleteError] = useState('');
   const [message, setMessage] = useState('');
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
-
 
   const router = useRouter();
 
@@ -175,13 +173,7 @@ export default function Profile() {
       setError('An error occurred while updating your profile.');
     }
   };
-  const handleLikeChange = (jokeId, updatedLikes) => {
-    setJokes((prevJokes) =>
-      prevJokes.map((joke) =>
-        joke._id === jokeId ? { ...joke, likedBy: updatedLikes } : joke
-      )
-    );
-  };
+
   const handleDeleteAccount = async () => {
     const token = Cookies.get('auth_token');
 
@@ -252,19 +244,10 @@ export default function Profile() {
                 <p className="text-sm text-gray-500">Posted on: {new Date(joke.createdAt).toLocaleDateString()}</p>
                 <div className="mt-2 flex justify-between items-center">
                   {/* Likes */}
-                  {/* <div className="flex items-center space-x-2">
+                  <div className="flex items-center space-x-2">
                     <img src="/heart.png" alt="Like" className="w-6 h-6" />
                     <span className="text-sm">{joke.likes?.length || 0} Likes</span>
-                  </div> */}
-
-                    <LikeButton
-                    jokeId={joke._id}
-                    initialLikes={joke.likedBy}
-                    userId={user._id}
-                    onLikeChange={handleLikeChange}
-                    />
-
-
+                  </div>
                   {/* Edit/Delete Buttons */}
                   <div className="flex space-x-4">
                     <button
