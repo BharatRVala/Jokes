@@ -5,7 +5,7 @@ import { Joke } from '../../../../lib/model/Joke';
 
 export async function POST(req) {
   try {
-    const cookieStore = cookies();
+    const cookieStore = await cookies(); // Ensure cookies() is awaited
     const authToken = cookieStore.get('auth_token')?.value;
 
     if (!authToken) {
@@ -66,8 +66,6 @@ export async function POST(req) {
     }
 
     await joke.save();
-
-    // console.log(`User ${userId} ${userAlreadyLiked ? 'removed like from' : 'liked'} joke ${jokeId}.`);
 
     return new Response(
       JSON.stringify({

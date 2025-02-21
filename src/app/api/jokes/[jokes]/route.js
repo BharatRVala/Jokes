@@ -2,14 +2,14 @@ import { NextResponse } from "next/server";
 import { dbConnect } from "@/lib/db";
 import { User } from "@/lib/model/User";
 
-export async function GET(request, context) {
+export async function GET(req, context) {
   try {
-    // The 'uprofile' should be 'jokes' based on your route file name
-    const { jokes } = context.params;
+    const params = await context.params; // ✅ Await params before destructuring
+    const { jokes } = params;
 
     if (!jokes) {
       return NextResponse.json(
-        { success: false, message: "jokes parameter is missing" },
+        { success: false, message: "Jokes parameter is missing" },
         { status: 400 }
       );
     }
