@@ -1,54 +1,66 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
+import { useState } from "react";
 
 const LikeButton = ({ jokeId, initialLikes, userId, onLikeChange }) => {
-  const [likes, setLikes] = useState(Array.isArray(initialLikes) ? initialLikes : []);
+  const [likes, setLikes] = useState(new Set(initialLikes)); // Using Set for quick lookup
   const [isLiking, setIsLiking] = useState(false);
 
-  const isLiked = likes.includes(userId);
+  const isLiked = likes.has(userId);
 
   const handleLike = async () => {
     if (!userId) {
-      alert('You need to be logged in to like a joke.');
+      alert("You need to be logged in to like a joke.");
       return;
     }
 
-    setIsLiking(true);
+    // Optimistic UI Update
+    const updatedLikes = new Set(likes);
+    if (isLiked) {
+      updatedLikes.delete(userId);
+    } else {
+      updatedLikes.add(userId);
+    }
+    setLikes(updatedLikes);
+    onLikeChange(jokeId, Array.from(updatedLikes));
 
+    // Send API request in the background
+    setIsLiking(true);
     try {
-      const response = await fetch('/api/jokes/like', {
-        method: 'POST',
+      const response = await fetch("/api/jokes/like", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({ jokeId, userId }),
       });
 
       const data = await response.json();
+      if (!response.ok) throw new Error(data.error || "Failed to like joke");
 
-      if (response.ok) {
-        setLikes(Array.isArray(data.joke?.likes) ? data.joke.likes : []); // Ensure likes is always an array
-        onLikeChange(jokeId, data.joke?.likes || []); // Update the likes in the parent component
-      } else {
-        alert(data.error || 'An error occurred while liking the joke.');
-      }
+      // Sync UI with server response
+      setLikes(new Set(data.joke?.likes || []));
+      onLikeChange(jokeId, data.joke?.likes || []);
     } catch (error) {
-      console.error('Error liking the joke:', error);
-      alert('An unexpected error occurred.');
+      console.error("Error liking joke:", error);
+      alert("An unexpected error occurred.");
     } finally {
       setIsLiking(false);
     }
   };
 
   return (
-    <button onClick={handleLike} disabled={isLiking} className="flex items-center space-x-2">
+    <button
+      onClick={handleLike}
+      disabled={isLiking}
+      className="flex items-center space-x-2 transition-transform transform active:scale-90"
+    >
       <img
-        src={isLiked ? '/heartp.png' : '/heart.png'} // Check the 'isLiked' condition
+        src={isLiked ? "/heartp.png" : "/heart.png"}
         alt="Like"
         className="w-6 h-6"
       />
-      <span className="font-semibold text-red-500">{likes.length} likes</span>
+      <span className="font-semibold text-red-500">{likes.size} likes</span>
     </button>
   );
 };
