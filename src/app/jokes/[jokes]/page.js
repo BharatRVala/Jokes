@@ -1,99 +1,163 @@
-'use client';
+"use client";
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import Cookies from "js-cookie";
+import Navbar from "@/components/Navbar";
+import LikeButton from "@/components/LikeButton";
 
-import React, { useEffect, useState } from 'react';
-import { useParams } from 'next/navigation';
-import Navbar from '@/components/Navbar';
-import LikeButton from '@/components/LikeButton';
-
-const JokePage = () => {
-  const { jokes } = useParams(); // Use useParams for dynamic route parameters
-
-  const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
+export default function JokesPage() {
+  const [jokes, setJokes] = useState([]);
   const [error, setError] = useState(null);
+  const [loadingJokes, setLoadingJokes] = useState(true);
+  const [userId, setUserId] = useState(null);
+  const router = useRouter();
 
   useEffect(() => {
-    if (!jokes) return;
+    const token = Cookies.get("auth_token");
+    if (!token) {
+      setError("आपको चुटकुले देखने के लिए लॉग इन करना होगा।");
+      router.push("/login");
+      return;
+    }
 
-    const fetchUser = async () => {
+    try {
+      const decodedToken = JSON.parse(atob(token.split(".")[1]));
+      setUserId(decodedToken.userId);
+    } catch (error) {
+      setError(error.message);
+    }
+  }, []);
+
+  useEffect(() => {
+    const fetchJokes = async () => {
+      setLoadingJokes(true);
       try {
-        const res = await fetch(`/api/jokes/${jokes}`); // Fetch user by ID
-        if (!res.ok) throw new Error('Failed to fetch user details');
-
-        const data = await res.json();
-        setUser(data.user);
-      } catch (err) {
-        setError(err.message);
+        const response = await fetch("/api/alljokes");
+        if (!response.ok) {
+          throw new Error("Failed to fetch jokes");
+        }
+        const data = await response.json();
+        setJokes(data.jokes);
+      } catch (error) {
+        setError(error.message);
       } finally {
-        setLoading(false);
+        setLoadingJokes(false);
       }
     };
 
-    fetchUser();
-  }, [jokes]);
+    fetchJokes();
+  }, []);
 
-  if (loading) return <div>Loading...</div>;
-  if (error) return <div>Error: {error}</div>;
-  if (!user) return <div>User not found.</div>;
-
-  // Function to format the creation date
-  const formatDate = (dateString) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-    });
+  const handleLikeChange = (jokeId, updatedLikes) => {
+    setJokes((prevJokes) =>
+      prevJokes.map((joke) =>
+        joke._id === jokeId ? { ...joke, likedBy: updatedLikes } : joke
+      )
+    );
   };
 
-  const onLikeChange = (jokeId) => {
-    const updatedJokes = user.jokes.map((joke) => {
-      if (joke._id === jokeId) {
-        joke.likes += 1;
+  const readJoke = async (joke, lang) => {
+    if (!("speechSynthesis" in window)) {
+      alert("Your browser does not support text-to-speech.");
+      return;
+    }
+
+    let text = joke;
+    if (lang === "hi-IN") {
+      try {
+        const response = await fetch("/api/translateJoke", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ joke }),
+        });
+
+        if (!response.ok) {
+          throw new Error(`HTTP Error! Status: ${response.status}`);
+        }
+
+        const data = await response.json();
+        if (!data.translatedJoke) {
+          throw new Error("Translation failed, no data received.");
+        }
+        text = data.translatedJoke;
+      } catch (error) {
+        console.error("Error translating joke:", error);
+        alert("चुटकुला ट्रांसलेट करने में समस्या हुई। कृपया पुनः प्रयास करें।");
+        return;
       }
-      return joke;
-    });
-    setUser((prevUser) => ({ ...prevUser, jokes: updatedJokes }));
+    }
+
+    const speech = new SpeechSynthesisUtterance(text);
+    speech.lang = lang;
+    speech.rate = 0.9;
+    speech.pitch = 1;
+    window.speechSynthesis.speak(speech);
   };
 
   return (
-    <div className="min-h-screen bg-gray-100">
+    <div className="min-h-screen bg-gradient-to-r from-blue-50 via-blue-100 to-purple-50">
       <Navbar />
-      <div className="max-w-4xl mx-auto p-6 bg-white rounded-lg shadow-lg mt-8">
-        <h1 className="text-2xl font-bold text-indigo-600 mb-4">User Details</h1>
-        <p className="text-lg text-gray-700">
-          <strong className="text-indigo-600">UserName:</strong> {user.userName}
-        </p>
-        <p className="text-lg text-gray-700">
-          <strong className="text-indigo-600">Email:</strong> {user.email}
-        </p>
-        <h2 className="text-xl font-semibold text-indigo-500 mt-6">Jokes</h2>
-        <div className="mt-4">
-          {user.jokes?.length > 0 ? (
-            user.jokes.map((joke) => (
-              <div key={joke._id} className="mb-6 p-4 border-b border-gray-300">
-                <p className="text-lg text-gray-800">{joke.content}</p>
-                <div className="flex justify-between items-center mt-2">
-                  <p className="text-sm text-gray-500">
-                    Created on: {formatDate(joke.createdAt)}
-                  </p>
-                  <LikeButton
-                    jokeId={joke._id}
-                    initialLikes={joke.likes}
-                    userId={user._id}
-                    onLikeChange={onLikeChange}
-                  />
+      <div className="max-w-5xl mx-auto px-6 py-8 mt-12">
+        <div className="bg-white rounded-lg shadow-lg p-8 text-center">
+          <h1 className="text-4xl font-extrabold text-blue-600 mb-4">
+            चुटकुलों के पेज में आपका स्वागत है!
+          </h1>
+          <p className="text-lg text-gray-700 leading-relaxed mb-8">
+            हमारे समुदाय से नवीनतम और सबसे मजेदार चुटकुलों का आनंद लें:
+          </p>
+        </div>
 
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-1 gap-6 mt-12">
+          {loadingJokes ? (
+            <p className="text-center text-xl text-gray-600 w-full col-span-3">
+              चुटकुले लोड हो रहे हैं...
+            </p>
+          ) : jokes.length === 0 ? (
+            <p className="text-center text-xl text-gray-600 w-full col-span-3">
+              अभी कोई चुटकुले उपलब्ध नहीं हैं। कृपया बाद में वापस आएं!
+            </p>
+          ) : (
+            jokes.map((joke) => (
+              <div key={joke._id} className="bg-white p-4 rounded-lg shadow-md">
+                <div className="flex justify-between items-center">
+                  <p
+                    className="text-md text-blue-500 font-semibold cursor-pointer"
+                    onClick={() => joke.user?._id && router.push(`/jokes/${joke.user._id}`)}
+                  >
+                    @{joke.userName || "गुमनाम"}
+                  </p>
+                  <p className="text-sm text-gray-500">
+                    {new Date(joke.createdAt).toLocaleDateString()}
+                  </p>
                 </div>
+
+                <p className="text-lg italic text-gray-700 m-4">{joke.content}</p>
+
+                <button
+                  onClick={() => readJoke(joke.content, "hi-IN")}
+                  className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-md transition mr-2"
+                >
+                  चुटकुला सुनें (हिंदी)
+                </button>
+
+                <button
+                  onClick={() => readJoke(joke.content, "en-US")}
+                  className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-md transition"
+                >
+                  Hear Joke (English)
+                </button>
+
+                <LikeButton
+                  jokeId={joke._id}
+                  initialLikes={joke.likedBy}
+                  userId={userId}
+                  onLikeChange={handleLikeChange}
+                />
               </div>
             ))
-          ) : (
-            <p className="text-gray-500">No jokes found.</p>
           )}
         </div>
       </div>
     </div>
   );
-};
-
-export default JokePage;
+}

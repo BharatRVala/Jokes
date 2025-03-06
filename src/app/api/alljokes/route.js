@@ -1,6 +1,7 @@
 import { dbConnect } from '@/lib/db';
 import { Joke } from '@/lib/model/Joke';
 import User from '@/lib/model/User'; 
+
 export async function GET() {
   try {
     // Connect to the database
@@ -12,11 +13,13 @@ export async function GET() {
       .exec();
 
     // Add likedBy field to each joke and handle cases where user is null
-    const jokesWithLikes = jokes.map((joke) => ({
-      ...joke.toObject(),
-      likedBy: joke.likes || [], // Ensure likedBy is always an array
-      userName: joke.user ? joke.user.userName : null, // Set userName to null if user is null
-    }));
+    const jokesWithLikes = jokes
+      .map((joke) => ({
+        ...joke.toObject(),
+        likedBy: joke.likes || [], // Ensure likedBy is always an array
+        userName: joke.user ? joke.user.userName : null, // Set userName to null if user is null
+      }))
+      .sort(() => Math.random() - 0.5); // Shuffle jokes before sending
 
     // Return jokes as JSON response with CORS headers
     return new Response(JSON.stringify({ jokes: jokesWithLikes }), {
@@ -24,8 +27,8 @@ export async function GET() {
       headers: {
         'Content-Type': 'application/json',
         'Access-Control-Allow-Origin': '*', // Allow requests from any origin
-        'Access-Control-Allow-Methods': 'GET, POST, OPTIONS', // Specify allowed methods
-        'Access-Control-Allow-Headers': 'Content-Type, Authorization', // Specify allowed headers
+        'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+        'Access-Control-Allow-Headers': 'Content-Type, Authorization',
       },
     });
   } catch (error) {
@@ -36,7 +39,7 @@ export async function GET() {
         status: 500,
         headers: {
           'Content-Type': 'application/json',
-          'Access-Control-Allow-Origin': '*', // Include CORS headers for error response
+          'Access-Control-Allow-Origin': '*',
           'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
           'Access-Control-Allow-Headers': 'Content-Type, Authorization',
         },
