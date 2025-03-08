@@ -90,30 +90,8 @@ export default function JokesPage() {
     const speech = new SpeechSynthesisUtterance(text);
     speech.lang = lang;
     speech.rate = 0.9;
-    speech.pitch = 1.2; // Slightly higher pitch for a more feminine voice
-
-    speechSynthesis.onvoiceschanged = () => {
-      const voices = speechSynthesis.getVoices();
-      console.log("Available voices:", voices);
-
-      if (lang === "hi-IN") {
-        const hindiFemaleVoice = voices.find(
-          (voice) => voice.lang === "hi-IN" && voice.name.includes("Female")
-        );
-        if (hindiFemaleVoice) {
-          speech.voice = hindiFemaleVoice;
-        } else {
-          console.warn("No Hindi female voice found, using default.");
-        }
-      }
-
-      window.speechSynthesis.speak(speech);
-    };
-
-    const voices = speechSynthesis.getVoices();
-    if (voices.length > 0) {
-      speechSynthesis.onvoiceschanged();
-    }
+    speech.pitch = 1;
+    window.speechSynthesis.speak(speech);
   };
 
   return (

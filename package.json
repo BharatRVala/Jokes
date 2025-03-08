@@ -9,6 +9,7 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@google-cloud/text-to-speech": "^5.8.1",
     "@vitalets/google-translate-api": "^9.2.1",
     "bcryptjs": "^2.4.3",
     "cookie": "^1.0.2",
@@ -22,7 +23,8 @@
     "next": "15.1.5",
     "next-auth": "^4.24.11",
     "react": "^19.0.0",
-    "react-dom": "^19.0.0"
+    "react-dom": "^19.0.0",
+    "say": "^0.16.0"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
