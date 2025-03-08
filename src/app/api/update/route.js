@@ -5,7 +5,7 @@ import { User } from '@/lib/model/User';
 export async function PUT(req) {
   try {
     // Parse the request body
-    const { userId, name, email, password } = await req.json();
+    const { userId, userName, email, password } = await req.json();
 
     // Validate input
     if (!userId) {
@@ -15,7 +15,7 @@ export async function PUT(req) {
       );
     }
 
-    if (!name && !email && !password) {
+    if (!userName && !email && !password) {
       return new Response(
         JSON.stringify({ message: 'No fields to update' }),
         { status: 400 }
@@ -35,7 +35,7 @@ export async function PUT(req) {
     }
 
     // Update the fields if they are provided
-    if (name) user.name = name;
+    if (userName) user.userName = userName; // Ensure this matches your schema
     if (email) user.email = email;
 
     // If a password is provided, hash it before saving
@@ -53,7 +53,7 @@ export async function PUT(req) {
         message: 'User updated successfully',
         user: {
           id: user._id,
-          name: user.name,
+          userName: user.userName, // Ensure this matches your schema
           email: user.email,
         },
       }),
