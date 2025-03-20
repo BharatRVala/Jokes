@@ -1,99 +1,104 @@
-'use client';
+"use client";
 
-import React, { useEffect, useState } from 'react';
-import { useParams } from 'next/navigation';
-import Navbar from '@/components/Navbar';
-import LikeButton from '@/components/LikeButton';
+import { useEffect, useState, useContext } from "react";
+import { useParams } from "next/navigation";
+import { AuthContext } from "@/context/AuthContext";
+import Navbar from "@/components/Navbar";
+import LikeButton from "@/components/LikeButton";
 
-const JokePage = () => {
-  const { jokes } = useParams(); // Use useParams for dynamic route parameters
-
-  const [user, setUser] = useState(null);
+export default function JokesDetailsPage() {
+  const { jokes: jokeId } = useParams(); // Get jokeId from URL
+  const [userData, setUserData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const { user } = useContext(AuthContext);
 
   useEffect(() => {
-    if (!jokes) return;
-
-    const fetchUser = async () => {
+    async function fetchUserData() {
+      setLoading(true);
+      setError(null);
       try {
-        const res = await fetch(`/api/jokes/${jokes}`); // Fetch user by ID
-        if (!res.ok) throw new Error('Failed to fetch user details');
+        const response = await fetch(`/api/user/${jokeId}`);
+        if (!response.ok) throw new Error("Failed to fetch user data");
 
-        const data = await res.json();
-        setUser(data.user);
-      } catch (err) {
-        setError(err.message);
+        const data = await response.json();
+        setUserData(data);
+      } catch (error) {
+        setError(error.message);
       } finally {
         setLoading(false);
       }
-    };
+    }
 
-    fetchUser();
-  }, [jokes]);
+    fetchUserData();
+  }, [jokeId]);
 
-  if (loading) return <div>Loading...</div>;
-  if (error) return <div>Error: {error}</div>;
-  if (!user) return <div>User not found.</div>;
-
-  // Function to format the creation date
-  const formatDate = (dateString) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-    });
+  const handleLikeChange = (jokeId, updatedLikes) => {
+    setUserData((prev) => ({
+      ...prev,
+      jokes: prev.jokes.map((joke) =>
+        joke._id === jokeId ? { ...joke, likes: updatedLikes } : joke
+      ),
+    }));
   };
 
-  const onLikeChange = (jokeId) => {
-    const updatedJokes = user.jokes.map((joke) => {
-      if (joke._id === jokeId) {
-        joke.likes += 1;
-      }
-      return joke;
-    });
-    setUser((prevUser) => ({ ...prevUser, jokes: updatedJokes }));
-  };
+  if (loading) return <p className="text-center text-gray-500">Loading...</p>;
+  if (error) return <p className="text-center text-red-500">{error}</p>;
+  if (!userData) return <p className="text-center text-red-500 font-semibold">User not found</p>;
 
   return (
-    <div className="min-h-screen bg-gray-100">
+    <div className="min-h-screen bg-gradient-to-r from-blue-50 via-blue-100 to-purple-50">
       <Navbar />
-      <div className="max-w-4xl mx-auto p-6 bg-white rounded-lg shadow-lg mt-8">
-        <h1 className="text-2xl font-bold text-indigo-600 mb-4">User Details</h1>
-        <p className="text-lg text-gray-700">
-          <strong className="text-indigo-600">UserName:</strong> {user.userName}
-        </p>
-        <p className="text-lg text-gray-700">
-          <strong className="text-indigo-600">Email:</strong> {user.email}
-        </p>
-        <h2 className="text-xl font-semibold text-indigo-500 mt-6">Jokes</h2>
-        <div className="mt-4">
-          {user.jokes?.length > 0 ? (
-            user.jokes.map((joke) => (
-              <div key={joke._id} className="mb-6 p-4 border-b border-gray-300">
-                <p className="text-lg text-gray-800">{joke.content}</p>
-                <div className="flex justify-between items-center mt-2">
-                  <p className="text-sm text-gray-500">
-                    Created on: {formatDate(joke.createdAt)}
-                  </p>
-                  <LikeButton
-                    jokeId={joke._id}
-                    initialLikes={joke.likes}
-                    userId={user._id}
-                    onLikeChange={onLikeChange}
-                  />
+      <div className="max-w-5xl mx-auto px-6 py-8 mt-12">
+       
 
+        {/* User Information Section */}
+        <div className="bg-white p-6 mt-8 rounded-lg shadow-md border border-gray-300">
+          <p className="text-lg text-gray-700">
+            <span className="font-semibold">Username:</span> {userData.userName}
+          </p>
+          <p className="text-lg text-gray-700">
+            <span className="font-semibold">Email:</span> {userData.email}
+          </p>
+        </div>
+
+       
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+          {userData.jokes.length === 0 ? (
+            <p className="text-center text-xl text-gray-600 w-full col-span-2">
+              अभी कोई चुटकुले उपलब्ध नहीं हैं। कृपया बाद में वापस आएं!
+            </p>
+          ) : (
+            userData.jokes.map((joke) => (
+              <div key={joke._id} className="bg-white p-6 rounded-lg shadow-md">
+                <div className="flex justify-between items-center">
+                  <p className="text-md text-blue-500 font-semibold cursor-pointer">
+                    @{userData.userName}
+                  </p>
+                  <p className="text-sm text-gray-500">
+                    {new Date(joke.createdAt).toLocaleDateString()}
+                  </p>
                 </div>
+
+                <p className="text-lg italic text-gray-700 my-4">
+                  {joke.content}
+                </p>
+
+                
+
+                {/* Like Button */}
+                <LikeButton
+                  jokeId={joke._id}
+                  initialLikes={joke.likes}
+                  userId={user?.userId}
+                  onLikeChange={handleLikeChange}
+                />
               </div>
             ))
-          ) : (
-            <p className="text-gray-500">No jokes found.</p>
           )}
         </div>
       </div>
     </div>
   );
-};
-
-export default JokePage;
+}
