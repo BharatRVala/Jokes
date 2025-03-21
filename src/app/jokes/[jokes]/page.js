@@ -1,122 +1,99 @@
-"use client";
-import { useEffect, useState, useContext } from "react";
-import { useParams } from "next/navigation";
-import { AuthContext } from "@/context/AuthContext";
-import { FaHeart } from "react-icons/fa";
-import { motion } from "framer-motion";
+'use client';
 
-export default function JokesDetailsPage() {
-  const { jokes: jokeId } = useParams(); // Get jokeId from URL
-  const [userData, setUserData] = useState(null);
+import React, { useEffect, useState } from 'react';
+import { useParams } from 'next/navigation';
+import Navbar from '@/components/Navbar';
+import LikeButton from '@/components/LikeButton';
+
+const JokePage = () => {
+  const { jokes } = useParams(); // Use useParams for dynamic route parameters
+
+  const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
-  const { user } = useContext(AuthContext); // Get logged-in user from context
-  const [likedJokes, setLikedJokes] = useState(new Set());
+  const [error, setError] = useState(null);
 
   useEffect(() => {
-    async function fetchUserData() {
-      try {
-        const response = await fetch(`/api/user/${jokeId}`);
-        if (!response.ok) throw new Error("Failed to fetch user data");
+    if (!jokes) return;
 
-        const data = await response.json();
-        setUserData(data);
-        setLikedJokes(new Set(data.jokes.filter(j => j.likes.includes(user?.userId)).map(j => j._id)));
-      } catch (error) {
-        console.error(error);
+    const fetchUser = async () => {
+      try {
+        const res = await fetch(`/api/jokes/${jokes}`); // Fetch user by ID
+        if (!res.ok) throw new Error('Failed to fetch user details');
+
+        const data = await res.json();
+        setUser(data.user);
+      } catch (err) {
+        setError(err.message);
       } finally {
         setLoading(false);
       }
-    }
+    };
 
-    fetchUserData();
-  }, [jokeId, user]);
+    fetchUser();
+  }, [jokes]);
 
-  const toggleLike = async (jokeId) => {
-    if (!user) {
-      alert("You need to be logged in to like jokes.");
-      return;
-    }
+  if (loading) return <div>Loading...</div>;
+  if (error) return <div>Error: {error}</div>;
+  if (!user) return <div>User not found.</div>;
 
-    const isLiked = likedJokes.has(jokeId);
-    const updatedLikes = new Set(likedJokes);
-    isLiked ? updatedLikes.delete(jokeId) : updatedLikes.add(jokeId);
-    setLikedJokes(updatedLikes);
-    
-    try {
-      const response = await fetch("/api/jokes/like", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ jokeId }),
-      });
-
-      if (!response.ok) throw new Error("Failed to update like status");
-
-      const data = await response.json();
-      setUserData((prev) => ({
-        ...prev,
-        jokes: prev.jokes.map((joke) =>
-          joke._id === jokeId ? { ...joke, likes: data.joke.likes } : joke
-        ),
-      }));
-    } catch (error) {
-      console.error(error);
-    }
+  // Function to format the creation date
+  const formatDate = (dateString) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+    });
   };
 
-  if (loading) return <p className="text-center text-gray-500">Loading...</p>;
-  if (!userData)
-    return <p className="text-center text-red-500 font-semibold">User not found</p>;
+  const onLikeChange = (jokeId) => {
+    const updatedJokes = user.jokes.map((joke) => {
+      if (joke._id === jokeId) {
+        joke.likes += 1;
+      }
+      return joke;
+    });
+    setUser((prevUser) => ({ ...prevUser, jokes: updatedJokes }));
+  };
 
   return (
-    <div className="max-w-3xl mx-auto my-10 p-6 bg-white shadow-lg rounded-lg border border-gray-200">
-      <h1 className="text-3xl font-bold text-gray-900 mb-4 text-center">User Details</h1>
-      <div className="bg-gray-100 p-4 rounded-lg">
+    <div className="min-h-screen bg-gray-100">
+      <Navbar />
+      <div className="max-w-4xl mx-auto p-6 bg-white rounded-lg shadow-lg mt-8">
+        <h1 className="text-2xl font-bold text-indigo-600 mb-4">User Details</h1>
         <p className="text-lg text-gray-700">
-          <span className="font-semibold">Username:</span> {userData.userName}
+          <strong className="text-indigo-600">UserName:</strong> {user.userName}
         </p>
         <p className="text-lg text-gray-700">
-          <span className="font-semibold">Email:</span> {userData.email}
+          <strong className="text-indigo-600">Email:</strong> {user.email}
         </p>
-      </div>
-
-      <h2 className="text-2xl font-semibold mt-6 text-gray-900">User Jokes</h2>
-
-      {userData.jokes.length > 0 ? (
-        <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
-          {userData.jokes.map((joke) => (
-            <div key={joke._id} className="p-4 bg-blue-50 border border-blue-300 rounded-lg shadow-md">
-              <p className="text-gray-800 font-medium">{joke.content}</p>
-              <p className="text-gray-600 text-sm mt-2">
-                Published on: {" "}
-                <span className="font-semibold">
-                  {new Date(joke.createdAt).toLocaleDateString("en-US", {
-                    year: "numeric",
-                    month: "long",
-                    day: "numeric",
-                  })}
-                </span>
-              </p>
-              <p className="text-gray-700 text-sm mt-2 flex items-center gap-2">
-                <motion.button
-                  onClick={() => toggleLike(joke._id)}
-                  animate={{ scale: likedJokes.has(joke._id) ? [1.3, 1] : 1 }}
-                  transition={{ type: "spring", stiffness: 300, damping: 10 }}
-                >
-                  <FaHeart
-                    className={
-                      likedJokes.has(joke._id) ? "text-red-500" : "text-gray-400"
-                    }
-                    size={24}
+        <h2 className="text-xl font-semibold text-indigo-500 mt-6">Jokes</h2>
+        <div className="mt-4">
+          {user.jokes?.length > 0 ? (
+            user.jokes.map((joke) => (
+              <div key={joke._id} className="mb-6 p-4 border-b border-gray-300">
+                <p className="text-lg text-gray-800">{joke.content}</p>
+                <div className="flex justify-between items-center mt-2">
+                  <p className="text-sm text-gray-500">
+                    Created on: {formatDate(joke.createdAt)}
+                  </p>
+                  <LikeButton
+                    jokeId={joke._id}
+                    initialLikes={joke.likes}
+                    userId={user._id}
+                    onLikeChange={onLikeChange}
                   />
-                </motion.button>
-                <span className="font-semibold">{joke.likes.length}</span> Likes
-              </p>
-            </div>
-          ))}
+
+                </div>
+              </div>
+            ))
+          ) : (
+            <p className="text-gray-500">No jokes found.</p>
+          )}
         </div>
-      ) : (
-        <p className="mt-4 text-gray-500">No jokes available.</p>
-      )}
+      </div>
     </div>
   );
-}
+};
+
+export default JokePage;

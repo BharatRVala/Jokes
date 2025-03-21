@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { motion } from "framer-motion";
 
 const LikeButton = ({ jokeId, initialLikes, userId, onLikeChange }) => {
   const [likes, setLikes] = useState(new Set(initialLikes)); // Using Set for quick lookup
@@ -51,23 +50,18 @@ const LikeButton = ({ jokeId, initialLikes, userId, onLikeChange }) => {
   };
 
   return (
-    <div className="flex items-center space-x-2">
-  <motion.button
-    onClick={handleLike}
-    disabled={isLiking}
-    animate={{ scale: isLiked ? [1.9, 1] : 1 }}
-    transition={{ type: "spring", stiffness: 300, damping: 10 }}
-    className="flex items-center transition-transform transform active:scale-90"
-  >
-    <img
-      src={isLiked ? "/heartp.png" : "/heart.png"}
-      alt="Like"
-      className="w-6 h-6"
-    />
-  </motion.button>
-  <span className="font-semibold text-black">{likes.size} likes</span>
-</div>
-
+    <button
+      onClick={handleLike}
+      disabled={isLiking}
+      className="flex items-center space-x-2 transition-transform transform active:scale-90"
+    >
+      <img
+        src={isLiked ? "/heartp.png" : "/heart.png"}
+        alt="Like"
+        className="w-6 h-6"
+      />
+      <span className="font-semibold text-red-500">{likes.size} likes</span>
+    </button>
   );
 };
 
