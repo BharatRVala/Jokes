@@ -28,7 +28,7 @@ const LikeButton = ({ jokeId, initialLikes, userId, onLikeChange }) => {
     // Send API request in the background
     setIsLiking(true);
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/jokes/like`, {
+      const response = await fetch("/api/jokes/like", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
