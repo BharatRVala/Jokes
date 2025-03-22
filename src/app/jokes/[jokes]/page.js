@@ -3,15 +3,17 @@
 import React, { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import Navbar from "@/components/Navbar";
-import ProfileSkeleton from "@/components/ProfileSkeleton"; // Loading skeleton component
+import ProfileSkeleton from "@/components/ProfileSkeleton"; // Loading skeleton
 import { FaHeart, FaRegHeart } from "react-icons/fa"; // Like & Dislike icons
+import { motion } from "framer-motion"; 
 
-const JokePage = () => {
+const UserPage = () => {
   const { jokes } = useParams(); // Get user ID from URL
   const [user, setUser] = useState(null);
   const [userJokes, setUserJokes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [currentUser, setCurrentUser] = useState(null); // Store logged-in user
 
   useEffect(() => {
     if (!jokes) return;
@@ -21,17 +23,9 @@ const JokePage = () => {
         console.log("Fetching jokes for user:", jokes);
         const res = await fetch(`/api/jokes/${jokes}`);
 
-        console.log("Response status:", res.status);
-
-        if (!res.ok) {
-          const errorData = await res.text();
-          console.error("Error fetching user:", errorData);
-          throw new Error("Failed to fetch user details");
-        }
+        if (!res.ok) throw new Error("Failed to fetch user details");
 
         const data = await res.json();
-        console.log("User data received:", data);
-
         setUser(data.user);
         setUserJokes(data.user.jokes || []);
       } catch (err) {
@@ -42,37 +36,54 @@ const JokePage = () => {
       }
     };
 
+    const fetchCurrentUser = async () => {
+      try {
+        const res = await fetch("/api/user", {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${document.cookie
+              .split("; ")
+              .find((row) => row.startsWith("auth_token="))
+              ?.split("=")[1]}`,
+          },
+        });
+
+        if (!res.ok) throw new Error("Failed to fetch logged-in user");
+
+        const data = await res.json();
+        setCurrentUser(data.user);
+      } catch (err) {
+        console.error("Error fetching logged-in user:", err.message);
+      }
+    };
+
     fetchUser();
+    fetchCurrentUser();
   }, [jokes]);
 
   // ✅ Handle Like Toggle
   const handleLike = async (jokeId) => {
-    try {
-      console.log("Liking joke ID:", jokeId);
+    if (!currentUser) {
+      alert("You need to log in to like jokes.");
+      return;
+    }
 
+    try {
       const res = await fetch("/api/jokes/like", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ jokeId }),
       });
 
-      console.log("Like API response status:", res.status);
-
-      if (!res.ok) {
-        const errorData = await res.text();
-        console.error("Error in like API:", errorData);
-        throw new Error(errorData || "Failed to like the joke.");
-      }
+      if (!res.ok) throw new Error("Failed to like the joke.");
 
       const { joke } = await res.json();
-      console.log("Updated joke after like:", joke);
 
-      setUserJokes((prevJokes) => {
-        const updatedJokes = prevJokes.map((j) =>
-          j._id === joke._id ? joke : j
-        );
-        return [...updatedJokes]; // ✅ Force state update
-      });
+      setUserJokes((prevJokes) =>
+        prevJokes.map((j) =>
+          j._id === joke._id ? { ...j, likes: [...joke.likes] } : j
+        )
+      );
     } catch (err) {
       console.error("Like Error:", err.message);
       alert(err.message);
@@ -101,7 +112,8 @@ const JokePage = () => {
 
             <div className="bg-white rounded-lg shadow-md p-6">
               <p className="text-lg text-gray-700">
-                <strong className="text-indigo-600">UserName:</strong> {user.userName}
+                <strong className="text-indigo-600">UserName:</strong>{" "}
+                {user.userName}
               </p>
               <p className="text-lg text-gray-700">
                 <strong className="text-indigo-600">Email:</strong> {user.email}
@@ -112,9 +124,12 @@ const JokePage = () => {
               Jokes
             </h2>
             <div className="grid grid-cols-1 gap-6 mt-6">
-              {userJokes.length > 0 ? (
+              {Array.isArray(userJokes) && userJokes.length > 0 ? (
                 userJokes.map((joke) => {
-                  const userLiked = joke.likes.includes(user?._id); // ✅ Check latest state
+                  const userLiked =
+                    currentUser &&
+                    Array.isArray(joke.likes) &&
+                    joke.likes.includes(currentUser._id);
 
                   return (
                     <div
@@ -122,26 +137,38 @@ const JokePage = () => {
                       className="bg-yellow-100 p-4 rounded-lg shadow-md"
                     >
                       <div className="flex justify-between items-center">
-                        <p className="text-md text-blue-500 font-semibold">@{user.userName}</p>
+                        <p className="text-md text-blue-500 font-semibold">
+                          @{user.userName}
+                        </p>
                         <p className="text-sm text-gray-500">
                           {new Date(joke.createdAt).toLocaleDateString()}
                         </p>
                       </div>
 
-                      <p className="text-lg italic text-gray-700 m-4">{joke.content}</p>
+                      <p className="text-lg italic text-gray-700 m-4">
+                        {joke.content}
+                      </p>
 
                       <div className="flex justify-between items-center">
-                        {/* Like Button */}
+                        {/* Like Button with Animation */}
                         <button
                           onClick={() => handleLike(joke._id)}
                           className="flex items-center space-x-2"
                         >
-                          {userLiked ? (
-                            <FaHeart className="text-red-500 text-xl" />
-                          ) : (
-                            <FaRegHeart className="text-gray-500 hover:text-red-500 text-xl" />
-                          )}
-                          <span className="text-lg font-bold text-gray-700">{joke.likes.length}</span>
+                          <motion.div
+                            whileTap={{ scale: 1.2 }}
+                            animate={{ scale: userLiked ? [1, 1.2, 1] : 1 }}
+                            transition={{ duration: 0.2 }}
+                          >
+                            {userLiked ? (
+                              <FaHeart className="text-red-500 text-2xl" />
+                            ) : (
+                              <FaRegHeart className="text-gray-500 hover:text-red-500 text-2xl" />
+                            )}
+                          </motion.div>
+                          <span className="text-lg font-bold text-gray-700">
+                            {joke.likes?.length || 0}
+                          </span>
                         </button>
                       </div>
                     </div>
@@ -160,4 +187,4 @@ const JokePage = () => {
   );
 };
 
-export default JokePage;
+export default UserPage;
