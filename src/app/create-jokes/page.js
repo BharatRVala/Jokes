@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useContext } from "react";
+import { useState, useContext, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { AuthContext } from "@/context/AuthContext";
 import Navbar from "@/components/Navbar";
@@ -12,6 +12,10 @@ export default function CreateJoke() {
   const [success, setSuccess] = useState("");
   const [loading, setLoading] = useState(false);
   const router = useRouter();
+
+  useEffect(() => {
+    console.log("User from AuthContext:", user);
+  }, [user]);
 
   const handlePublish = async () => {
     setError("");
@@ -31,6 +35,8 @@ export default function CreateJoke() {
       return;
     }
 
+    console.log("Publishing joke with userId:", user.userId);
+
     try {
       const response = await fetch("/api/jokes/create", {
         method: "POST",
@@ -45,9 +51,11 @@ export default function CreateJoke() {
         throw new Error(data.error || "Failed to publish joke.");
       }
 
+      console.log("Joke published successfully!");
       setSuccess("Joke published successfully!");
       setContent("");
     } catch (error) {
+      console.error("Error in handlePublish:", error.message);
       setError(error.message);
     } finally {
       setLoading(false);
