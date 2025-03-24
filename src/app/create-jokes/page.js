@@ -1,21 +1,36 @@
 "use client";
 
-import { useState, useContext, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { AuthContext } from "@/context/AuthContext";
 import Navbar from "@/components/Navbar";
+import Cookies from "js-cookie";
+import jwt from "jsonwebtoken";
 
 export default function CreateJoke() {
-  const { user } = useContext(AuthContext);
   const [content, setContent] = useState("");
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [loading, setLoading] = useState(false);
+  const [userId, setUserId] = useState(null);
   const router = useRouter();
 
   useEffect(() => {
-    console.log("User from AuthContext:", user);
-  }, [user]);
+    const token = Cookies.get("auth_token");
+    if (token) {
+      try {
+        const decoded = jwt.decode(token);
+        if (decoded?.userId) {
+          setUserId(decoded.userId);
+        } else {
+          console.error("Invalid token payload");
+          setUserId(null);
+        }
+      } catch (error) {
+        console.error("Error decoding token:", error);
+        setUserId(null);
+      }
+    }
+  }, []);
 
   const handlePublish = async () => {
     setError("");
@@ -28,14 +43,14 @@ export default function CreateJoke() {
       return;
     }
 
-    if (!user || !user.userId) {
+    if (!userId) {
       setError("You must be logged in to publish jokes.");
       setLoading(false);
       router.push("/login");
       return;
     }
 
-    console.log("Publishing joke with userId:", user.userId);
+    console.log("Publishing joke with userId:", userId);
 
     try {
       const response = await fetch("/api/jokes/create", {
@@ -43,7 +58,7 @@ export default function CreateJoke() {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ content, userId: user.userId }),
+        body: JSON.stringify({ content, userId }),
       });
 
       if (!response.ok) {
