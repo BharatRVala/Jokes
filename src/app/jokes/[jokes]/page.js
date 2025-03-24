@@ -23,7 +23,7 @@ const UserPage = () => {
         console.log("Fetching jokes for user:", jokes);
         const res = await fetch(`/api/jokes/${jokes}`);
 
-        if (!res.ok) throw new Error("Failed to fetch user details");
+        if (!res.ok) throw new Error("Failed to fetch user details try again");
 
         const data = await res.json();
         setUser(data.user);
