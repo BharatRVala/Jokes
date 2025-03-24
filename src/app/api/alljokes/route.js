@@ -1,31 +1,43 @@
 import { dbConnect } from '@/lib/db';
 import { Joke } from '@/lib/model/Joke';
-import User from '@/lib/model/User'; 
-export async function GET() {
+import User from '@/lib/model/User';
+
+export async function GET(req) {
   try {
-    // Connect to the database
     await dbConnect();
 
-    // Fetch all jokes and populate user details (userName field)
-    const jokes = await Joke.find()
-      .populate('user', 'userName') // Populate 'user' field with 'userName'
+    const url = new URL(req.url);
+    const category = url.searchParams.get("category");
+    const userId = url.searchParams.get("userId");
+
+    let filter = {};
+
+    if (category === "latest") {
+      filter = {};
+    } else if (category === "most-popular") {
+      filter = { likes: { $exists: true, $not: { $size: 0 } } }; // Jokes with likes
+    } else if (category === "my-jokes" && userId) {
+      filter = { user: userId }; // Fetch only the jokes created by the logged-in user
+    }
+
+    const jokes = await Joke.find(filter)
+      .sort(category === "latest" ? { createdAt: -1 } : { likes: -1, createdAt: -1 }) // Sort by likes first, then by latest
+      .populate('user', 'userName')
       .exec();
 
-    // Add likedBy field to each joke and handle cases where user is null
     const jokesWithLikes = jokes.map((joke) => ({
       ...joke.toObject(),
-      likedBy: joke.likes || [], // Ensure likedBy is always an array
-      userName: joke.user ? joke.user.userName : null, // Set userName to null if user is null
+      likedBy: joke.likes || [],
+      userName: joke.user ? joke.user.userName : null,
     }));
 
-    // Return jokes as JSON response with CORS headers
     return new Response(JSON.stringify({ jokes: jokesWithLikes }), {
       status: 200,
       headers: {
         'Content-Type': 'application/json',
-        'Access-Control-Allow-Origin': '*', // Allow requests from any origin
-        'Access-Control-Allow-Methods': 'GET, POST, OPTIONS', // Specify allowed methods
-        'Access-Control-Allow-Headers': 'Content-Type, Authorization', // Specify allowed headers
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+        'Access-Control-Allow-Headers': 'Content-Type, Authorization',
       },
     });
   } catch (error) {
@@ -36,7 +48,7 @@ export async function GET() {
         status: 500,
         headers: {
           'Content-Type': 'application/json',
-          'Access-Control-Allow-Origin': '*', // Include CORS headers for error response
+          'Access-Control-Allow-Origin': '*',
           'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
           'Access-Control-Allow-Headers': 'Content-Type, Authorization',
         },
