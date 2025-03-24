@@ -54,10 +54,10 @@ export default function Home() {
               </div>
     
               <button
-                onClick={() => router.push('/jokes')}
+                onClick={() => router.push('/Login')}
                 className="mt-6 px-6 py-3 bg-blue-600 text-white rounded-full text-lg font-semibold shadow-md hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition"
               >
-                Read More Jokes
+               Login to Read More Jokes
               </button>
             </div>
     
