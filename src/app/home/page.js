@@ -1,20 +1,8 @@
-'use client';
+"use client";
 
-import { useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import Cookies from 'js-cookie';
-import Navbar from '@/components/Navbar';
+import Navbar from "@/components/Navbar";
 
 export default function Home() {
-  const router = useRouter();
-
-  useEffect(() => {
-    const token = Cookies.get('auth_token');
-    if (!token) {
-      router.push('/login');
-    }
-  }, [router]);
-
   return (
     <div className="min-h-screen bg-gradient-to-r from-blue-50 via-blue-100 to-purple-50">
       <Navbar />
@@ -51,7 +39,7 @@ export default function Home() {
           </div>
 
           <button
-            onClick={() => router.push('/jokes')}
+            onClick={() => router.push("/jokes")}
             className="mt-6 px-6 py-3 bg-blue-600 text-white rounded-full text-lg font-semibold shadow-md hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition"
           >
             Read More Jokes

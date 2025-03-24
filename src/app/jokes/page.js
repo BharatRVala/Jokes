@@ -170,16 +170,10 @@ export default function JokesPage() {
             Welcome to the Jokes Page!
           </h1>
           <p className="text-lg text-gray-700 leading-relaxed mb-8">
-            Enjoy the latest and funniest jokes from our community:
+          Enjoy the latest and funniest jokes shared by our users!
           </p>
 
-          {/* Button to Refresh Jokes */}
-          <button
-            onClick={() => router.reload()}
-            className="bg-blue-600 text-white px-6 py-2 rounded-lg shadow-md hover:bg-blue-700 transition"
-          >
-            All Jokes
-          </button>
+         
         </div>
 
         {loading ? (
