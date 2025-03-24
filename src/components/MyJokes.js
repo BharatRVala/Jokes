@@ -14,25 +14,28 @@ export default function MyJokes({ jokes, handleEditJoke, handleDeleteJoke }) {
     setJokeList(jokes);
   }, [jokes]);
 
+  // Function to handle like action
   const handleLike = async (jokeId) => {
     if (!user) {
       alert("You need to be logged in to like a joke.");
       return;
     }
 
-    setJokeList((prevJokes) =>
-      prevJokes.map((joke) =>
-        joke._id === jokeId
-          ? {
-            ...joke,
-            likes: joke.likes.includes(user.userId)
-              ? joke.likes.filter((id) => id !== user.userId)
-              : [...joke.likes, user.userId],
-          }
-          : joke
-      )
-    );
+    // Optimistic UI Update
+    const updatedJokes = jokeList.map((joke) => {
+      if (joke._id === jokeId) {
+        const isLiked = joke.likes.includes(user.userId);
+        const updatedLikes = isLiked
+          ? joke.likes.filter((id) => id !== user.userId)
+          : [...joke.likes, user.userId];
+        return { ...joke, likes: updatedLikes };
+      }
+      return joke;
+    });
 
+    setJokeList(updatedJokes);
+
+    // Send API request in the background
     try {
       const response = await fetch("/api/jokes/like", {
         method: "POST",
@@ -80,13 +83,15 @@ export default function MyJokes({ jokes, handleEditJoke, handleDeleteJoke }) {
                 <div className="flex items-center space-x-2">
                   <button
                     onClick={() => handleLike(joke._id)}
-                    className="transition-transform transform active:scale-90"
+                    className="flex items-center space-x-2 transition-transform transform active:scale-90"
                   >
                     <motion.div
                       key={joke.likes.includes(user?.userId) ? "liked" : "not-liked"}
                       initial={{ scale: 1 }}
                       animate={{
-                        scale: joke.likes.includes(user?.userId) ? [1, 1.2, 1] : 1,
+                        scale: joke.likes.includes(user?.userId)
+                          ? [1, 1.2, 1]
+                          : 1,
                       }}
                       transition={{ duration: 0.3 }}
                     >
@@ -97,9 +102,10 @@ export default function MyJokes({ jokes, handleEditJoke, handleDeleteJoke }) {
                       )}
                     </motion.div>
                   </button>
-                  <span className="font-semibold text-black">{joke.likes.length} likes</span>
+                  <span className="font-semibold text-black">
+                    {joke.likes.length} {joke.likes.length === 1 ? "like" : "likes"}
+                  </span>
                 </div>
-
 
                 {/* Edit & Delete Buttons */}
                 <div className="flex space-x-4">
