@@ -3,6 +3,7 @@
 import { createContext, useState, useEffect } from "react";
 import Cookies from "js-cookie";
 import { useRouter } from "next/navigation";
+import jwt from "jsonwebtoken";
 
 export const AuthContext = createContext();
 
@@ -14,8 +15,14 @@ export function AuthProvider({ children }) {
     const token = Cookies.get("auth_token");
     if (token) {
       try {
-        const decodedToken = JSON.parse(atob(token.split(".")[1])); // Decode JWT payload
-        setUser({ userId: decodedToken.userId });
+        // Decode the token payload
+        const decodedToken = jwt.decode(token);
+        if (decodedToken && decodedToken.userId) {
+          setUser({ userId: decodedToken.userId });
+        } else {
+          console.error("Invalid token payload");
+          setUser(null);
+        }
       } catch (error) {
         console.error("Error decoding token:", error);
         setUser(null);

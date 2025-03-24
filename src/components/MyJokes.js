@@ -4,6 +4,7 @@ import { useState, useContext, useEffect } from "react";
 import { AuthContext } from "@/context/AuthContext";
 import { motion } from "framer-motion";
 import { FaHeart, FaRegHeart } from "react-icons/fa";
+import Cookies from "js-cookie";
 
 export default function MyJokes({ jokes, handleEditJoke, handleDeleteJoke }) {
   const { user } = useContext(AuthContext);
@@ -37,10 +38,12 @@ export default function MyJokes({ jokes, handleEditJoke, handleDeleteJoke }) {
 
     // Send API request in the background
     try {
+      const authToken = Cookies.get("auth_token");
       const response = await fetch("/api/jokes/like", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          Authorization: `Bearer ${authToken}`, // Pass the auth token
         },
         body: JSON.stringify({ jokeId, userId: user.userId }),
       });
