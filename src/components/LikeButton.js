@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { motion } from "framer-motion";
+import { FaHeart, FaRegHeart } from "react-icons/fa";
 
 const LikeButton = ({ jokeId, initialLikes, userId, onLikeChange }) => {
   const [likes, setLikes] = useState(new Set(initialLikes)); // Using Set for quick lookup
@@ -51,7 +52,6 @@ const LikeButton = ({ jokeId, initialLikes, userId, onLikeChange }) => {
   };
 
   return (
-    <>
     <div className="flex items-center space-x-2">
       <button
         onClick={handleLike}
@@ -59,23 +59,20 @@ const LikeButton = ({ jokeId, initialLikes, userId, onLikeChange }) => {
         className="transition-transform transform active:scale-90"
       >
         <motion.div
-          key={isLiked ? "liked" : "not-liked"} // Key to force re-render
+          key={isLiked ? "liked" : "not-liked"}
           initial={{ scale: 1 }}
-          animate={{ scale: isLiked ? [1, 1.2, 1] : 1 }} // Bounce animation when liked
+          animate={{ scale: isLiked ? [1, 1.2, 1] : 1 }}
           transition={{ duration: 0.3 }}
         >
-          <img
-            src={isLiked ? "/heartp.png" : "/heart.png"}
-            alt="Like"
-            className="w-6 h-6"
-          />
+          {isLiked ? (
+            <FaHeart className="text-red-500 text-2xl" />
+          ) : (
+            <FaRegHeart className="text-gray-500 hover:text-red-500 text-2xl" />
+          )}
         </motion.div>
       </button>
-  
       <span className="font-semibold text-black">{likes.size} likes</span>
     </div>
-  </>
-  
   );
 };
 
