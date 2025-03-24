@@ -6,7 +6,7 @@ import { AuthContext } from "@/context/AuthContext";
 import Navbar from "@/components/Navbar";
 
 export default function CreateJoke() {
-  const { user } = useContext(AuthContext); // Get user from Context
+  const { user } = useContext(AuthContext);
   const [content, setContent] = useState("");
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
@@ -19,12 +19,14 @@ export default function CreateJoke() {
     setLoading(true);
 
     if (!content.trim()) {
+      console.error("Joke content cannot be empty");
       setError("Joke content cannot be empty.");
       setLoading(false);
       return;
     }
 
     if (!user) {
+      console.error("User must be logged in to publish jokes");
       setError("You must be logged in to publish jokes.");
       setLoading(false);
       router.push("/login");
@@ -32,22 +34,27 @@ export default function CreateJoke() {
     }
 
     try {
+      console.log("Publishing joke:", { content, userId: user.userId });
+
       const response = await fetch("/api/jokes/create", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ content, userId: user.userId }), // Use userId from Context
+        body: JSON.stringify({ content, userId: user.userId }),
       });
 
       if (!response.ok) {
         const data = await response.json();
+        console.error("Error publishing joke:", data.error);
         throw new Error(data.error || "Failed to publish joke.");
       }
 
+      console.log("Joke published successfully!");
       setSuccess("Joke published successfully!");
       setContent("");
     } catch (error) {
+      console.error("Error in handlePublish:", error.message);
       setError(error.message);
     } finally {
       setLoading(false);
