@@ -19,14 +19,12 @@ export default function CreateJoke() {
     setLoading(true);
 
     if (!content.trim()) {
-      console.error("Joke content cannot be empty");
       setError("Joke content cannot be empty.");
       setLoading(false);
       return;
     }
 
-    if (!user) {
-      console.error("User must be logged in to publish jokes");
+    if (!user || !user.userId) {
       setError("You must be logged in to publish jokes.");
       setLoading(false);
       router.push("/login");
@@ -34,8 +32,6 @@ export default function CreateJoke() {
     }
 
     try {
-      console.log("Publishing joke:", { content, userId: user.userId });
-
       const response = await fetch("/api/jokes/create", {
         method: "POST",
         headers: {
@@ -46,15 +42,12 @@ export default function CreateJoke() {
 
       if (!response.ok) {
         const data = await response.json();
-        console.error("Error publishing joke:", data.error);
         throw new Error(data.error || "Failed to publish joke.");
       }
 
-      console.log("Joke published successfully!");
       setSuccess("Joke published successfully!");
       setContent("");
     } catch (error) {
-      console.error("Error in handlePublish:", error.message);
       setError(error.message);
     } finally {
       setLoading(false);
