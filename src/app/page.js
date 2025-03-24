@@ -1,9 +1,23 @@
 'use client';
 
+import { useEffect } from "react"; // Added import for useEffect
+import { useRouter } from "next/navigation"; // Added import for useRouter
 import Image from "next/image";
 import Link from "next/link";
+import Cookies from 'js-cookie';
 
 export default function Home() {
+  const router = useRouter(); // Initializing router
+
+  useEffect(() => {
+    const token = Cookies.get('auth_token');
+
+    // Redirect to home page if user is already logged in
+    if (token) {
+      router.push('/home');
+    }
+  }, [router]);
+
   return (
     <div className="grid grid-rows-[auto_1fr_auto] items-center justify-items-center min-h-screen bg-gradient-to-br from-blue-300 via-purple-400 to-pink-500 text-white p-8 sm:p-20 gap-16 font-[var(--font-geist-sans)]">
       <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start text-center sm:text-left">
@@ -15,9 +29,7 @@ export default function Home() {
           height={38}
           priority
         />
-        <h1 className="text-4xl font-semibold mb-6 text-yellow-300">
-          Welcome to the Funniest Jokes Site!
-        </h1>
+        <h1 className="text-4xl font-semibold mb-6 text-yellow-300">Welcome to the Funniest Jokes Site!</h1>
 
         <p className="text-lg font-[var(--font-geist-mono)] text-yellow-100">
           Ready to get your daily dose of laughs? We’ve got a joke for every moment.
@@ -32,12 +44,6 @@ export default function Home() {
             className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-yellow-500 hover:bg-yellow-600 text-black gap-2 text-sm sm:text-base h-12 px-5 font-semibold"
           >
             Login to Get Started
-          </Link>
-          <Link
-            href="/jokes"
-            className="rounded-full border border-solid border-white transition-colors flex items-center justify-center bg-transparent hover:bg-white hover:text-black text-white gap-2 text-sm sm:text-base h-12 px-5 font-semibold"
-          >
-            Browse Jokes
           </Link>
         </div>
       </main>
