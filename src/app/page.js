@@ -19,82 +19,111 @@ export default function Home() {
   }, [router]);
 
   return (
-    <div className="grid grid-rows-[auto_1fr_auto] items-center justify-items-center min-h-screen bg-gradient-to-br from-blue-300 via-purple-400 to-pink-500 text-white p-8 sm:p-20 gap-16 font-[var(--font-geist-sans)]">
-      <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start text-center sm:text-left">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <h1 className="text-4xl font-semibold mb-6 text-yellow-300">Welcome to the Funniest Jokes Site!</h1>
-
-        <p className="text-lg font-[var(--font-geist-mono)] text-yellow-100">
-          Ready to get your daily dose of laughs? We’ve got a joke for every moment.
-        </p>
-        <p className="text-md font-[var(--font-geist-mono)] text-yellow-200 mb-8">
-          Sign up, log in, and start laughing with our huge collection of jokes.
-        </p>
-
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <Link
-            href="/login"
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-yellow-500 hover:bg-yellow-600 text-black gap-2 text-sm sm:text-base h-12 px-5 font-semibold"
-          >
-            Login to Get Started
-          </Link>
+    <div className="min-h-screen bg-gradient-to-r from-blue-50 via-blue-100 to-purple-50">
+          
+          <div className="max-w-5xl mx-auto px-6 py-8 mt-12">
+            {/* Hero Section */}
+            <div className="bg-white rounded-lg shadow-lg p-8 text-center">
+              <h1 className="text-4xl font-extrabold text-blue-600 mb-4">Welcome to Jokes Platform!</h1>
+              <p className="text-lg text-gray-700 leading-relaxed mb-8">
+                Enjoy our collection of fun jokes! Here are a few to start with:
+              </p>
+    
+              {/* Jokes List */}
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div className="bg-blue-100 p-4 rounded-lg shadow-lg text-center">
+                  <h3 className="text-xl font-semibold text-blue-600 mb-2">1️⃣ Why don’t skeletons fight each other?</h3>
+                  <p className="text-gray-700 mb-4">Because they don’t have the guts! 💀😂</p>
+                </div>
+                <div className="bg-blue-100 p-4 rounded-lg shadow-lg text-center">
+                  <h3 className="text-xl font-semibold text-blue-600 mb-2">2️⃣ Why did the scarecrow win an award?</h3>
+                  <p className="text-gray-700 mb-4">He was outstanding in his field! 🌾🏆</p>
+                </div>
+                <div className="bg-blue-100 p-4 rounded-lg shadow-lg text-center">
+                  <h3 className="text-xl font-semibold text-blue-600 mb-2">3️⃣ Why don’t scientists trust atoms?</h3>
+                  <p className="text-gray-700 mb-4">Because they make up everything! ⚛️🤣</p>
+                </div>
+                <div className="bg-blue-100 p-4 rounded-lg shadow-lg text-center">
+                  <h3 className="text-xl font-semibold text-blue-600 mb-2">4️⃣ Why did the math book look sad?</h3>
+                  <p className="text-gray-700 mb-4">It had too many problems! 📘😭</p>
+                </div>
+                <div className="bg-blue-100 p-4 rounded-lg shadow-lg text-center">
+                  <h3 className="text-xl font-semibold text-blue-600 mb-2">5️⃣ Why couldn’t the bicycle stand up by itself?</h3>
+                  <p className="text-gray-700 mb-4">It was two tired! 🚲😴</p>
+                </div>
+              </div>
+    
+              <button
+                onClick={() => router.push('/jokes')}
+                className="mt-6 px-6 py-3 bg-blue-600 text-white rounded-full text-lg font-semibold shadow-md hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition"
+              >
+                Read More Jokes
+              </button>
+            </div>
+    
+            {/* Features Section */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-12">
+              {/* Feature 1: Create Jokes */}
+              <div className="bg-white rounded-lg shadow-lg p-6 text-center">
+                <div className="w-16 h-16 mx-auto mb-4 flex items-center justify-center bg-blue-100 text-blue-600 rounded-full">
+                  <img src="/pen-clip.png" alt="Create Jokes" className="w-8 h-8" />
+                </div>
+                <h3 className="text-xl font-semibold text-gray-800">Create Jokes</h3>
+                <p className="text-gray-600 mt-2">
+                  Share your sense of humor by creating hilarious jokes and sharing them with the community.
+                </p>
+              </div>
+    
+              {/* Feature 2: Like Jokes */}
+              <div className="bg-white rounded-lg shadow-lg p-6 text-center">
+                <div className="w-16 h-16 mx-auto mb-4 flex items-center justify-center bg-purple-100 text-purple-600 rounded-full">
+                  <img src="/mouse-pointer-heart.png" alt="Like Jokes" className="w-8 h-8" />
+                </div>
+                <h3 className="text-xl font-semibold text-gray-800">Like Jokes</h3>
+                <p className="text-gray-600 mt-2">
+                  React to jokes you love! Like jokes to show appreciation and keep the laughter flowing.
+                </p>
+              </div>
+    
+              {/* Feature 3: Profile Management */}
+              <div className="bg-white rounded-lg shadow-lg p-6 text-center">
+                <div className="w-16 h-16 mx-auto mb-4 flex items-center justify-center bg-pink-100 text-pink-600 rounded-full">
+                  <img src="/user-pen.png" alt="Edit Profile" className="w-8 h-8" />
+                </div>
+                <h3 className="text-xl font-semibold text-gray-800">Profile Management</h3>
+                <p className="text-gray-600 mt-2">
+                  Update your profile, edit or delete jokes, and manage your account with ease.
+                </p>
+              </div>
+    
+              {/* Feature 4: Edit/Delete Jokes */}
+              <div className="bg-white rounded-lg shadow-lg p-6 text-center">
+                <div className="w-16 h-16 mx-auto mb-4 flex items-center justify-center bg-yellow-100 text-yellow-600 rounded-full">
+                  <img src="/edit.png" alt="Edit/Delete Jokes" className="w-8 h-8" />
+                </div>
+                <h3 className="text-xl font-semibold text-gray-800">Edit/Delete Jokes</h3>
+                <p className="text-gray-600 mt-2">
+                  Modify your jokes for better punchlines or delete them if you change your mind.
+                </p>
+              </div>
+    
+              {/* Feature 5: Delete Account */}
+              <div className="bg-white rounded-lg shadow-lg p-6 text-center">
+                <div className="w-16 h-16 mx-auto mb-4 flex items-center justify-center bg-red-100 text-red-600 rounded-full">
+                  <img src="/user-xmark.png" alt="Delete Account" className="w-8 h-8" />
+                </div>
+                <h3 className="text-xl font-semibold text-gray-800">Delete Account</h3>
+                <p className="text-gray-600 mt-2">
+                  Take control of your account. Delete your profile anytime with a single click.
+                </p>
+              </div>
+            </div>
+    
+            {/* Footer Section */}
+            <footer className="mt-16 text-center text-gray-500">
+              <p>&copy; {new Date().getFullYear()} Jokes Platform. All rights reserved.</p>
+            </footer>
+          </div>
         </div>
-      </main>
-
-      <footer className="row-start-3 flex gap-6 flex-wrap items-center justify-center text-sm sm:text-base text-yellow-100">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
-    </div>
   );
 }
