@@ -1,9 +1,12 @@
+"use client";
+
 import { useState, useContext, useEffect } from "react";
 import { AuthContext } from "@/context/AuthContext";
-import LikeButton from "./LikeButton";
+import { motion } from "framer-motion";
+import { FaHeart, FaRegHeart } from "react-icons/fa";
 
 export default function MyJokes({ jokes, handleEditJoke, handleDeleteJoke }) {
-  const { user } = useContext(AuthContext); 
+  const { user } = useContext(AuthContext);
   const [jokeList, setJokeList] = useState(jokes || []);
 
   // Sync jokeList with jokes prop when it updates
@@ -11,12 +14,47 @@ export default function MyJokes({ jokes, handleEditJoke, handleDeleteJoke }) {
     setJokeList(jokes);
   }, [jokes]);
 
-  const handleLikeChange = (jokeId, updatedLikes) => {
+  const handleLike = async (jokeId) => {
+    if (!user) {
+      alert("You need to be logged in to like a joke.");
+      return;
+    }
+
     setJokeList((prevJokes) =>
       prevJokes.map((joke) =>
-        joke._id === jokeId ? { ...joke, likes: updatedLikes } : joke
+        joke._id === jokeId
+          ? {
+            ...joke,
+            likes: joke.likes.includes(user.userId)
+              ? joke.likes.filter((id) => id !== user.userId)
+              : [...joke.likes, user.userId],
+          }
+          : joke
       )
     );
+
+    try {
+      const response = await fetch("/api/jokes/like", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ jokeId, userId: user.userId }),
+      });
+
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || "Failed to like joke");
+
+      // Sync UI with server response
+      setJokeList((prevJokes) =>
+        prevJokes.map((joke) =>
+          joke._id === jokeId ? { ...joke, likes: data.joke.likes } : joke
+        )
+      );
+    } catch (error) {
+      console.error("Error liking joke:", error);
+      alert("An unexpected error occurred.");
+    }
   };
 
   return (
@@ -38,13 +76,30 @@ export default function MyJokes({ jokes, handleEditJoke, handleDeleteJoke }) {
                 Posted on: {new Date(joke.createdAt).toLocaleDateString()}
               </p>
               <div className="mt-2 flex justify-between items-center">
-                {/* Like Button Integration */}
-                <LikeButton
-                  jokeId={joke._id}
-                  initialLikes={joke.likes || []}
-                  userId={user?.userId}
-                  onLikeChange={handleLikeChange}
-                />
+                {/* Like Button */}
+                <div className="flex items-center space-x-2">
+                  <button
+                    onClick={() => handleLike(joke._id)}
+                    className="transition-transform transform active:scale-90"
+                  >
+                    <motion.div
+                      key={joke.likes.includes(user?.userId) ? "liked" : "not-liked"}
+                      initial={{ scale: 1 }}
+                      animate={{
+                        scale: joke.likes.includes(user?.userId) ? [1, 1.2, 1] : 1,
+                      }}
+                      transition={{ duration: 0.3 }}
+                    >
+                      {joke.likes.includes(user?.userId) ? (
+                        <FaHeart className="text-red-500 text-2xl" />
+                      ) : (
+                        <FaRegHeart className="text-gray-500 hover:text-red-500 text-2xl" />
+                      )}
+                    </motion.div>
+                  </button>
+                  <span className="font-semibold text-black">{joke.likes.length} likes</span>
+                </div>
+
 
                 {/* Edit & Delete Buttons */}
                 <div className="flex space-x-4">
