@@ -13,14 +13,18 @@ export function AuthProvider({ children }) {
 
   useEffect(() => {
     const token = Cookies.get("auth_token");
+    console.log("Token from cookie:", token);
+
     if (token) {
       try {
         // Decode the token payload
         const decodedToken = jwt.decode(token);
+        console.log("Decoded Token:", decodedToken);
+
         if (decodedToken && decodedToken.userId) {
           setUser({ userId: decodedToken.userId });
         } else {
-          console.error("Invalid token payload");
+          console.error("Invalid token payload:", decodedToken);
           setUser(null);
         }
       } catch (error) {
@@ -28,6 +32,7 @@ export function AuthProvider({ children }) {
         setUser(null);
       }
     } else {
+      console.warn("No auth token found");
       setUser(null);
     }
   }, []);
