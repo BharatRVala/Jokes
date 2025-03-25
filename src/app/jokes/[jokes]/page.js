@@ -3,29 +3,34 @@
 import React, { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import Navbar from "@/components/Navbar";
-import ProfileSkeleton from "@/components/ProfileSkeleton"; // Loading skeleton
-import { FaHeart, FaRegHeart } from "react-icons/fa"; // Like & Dislike icons
-import { motion } from "framer-motion"; 
+import ProfileSkeleton from "@/components/ProfileSkeleton";
+import { FaHeart, FaRegHeart } from "react-icons/fa";
+import { motion } from "framer-motion";
 
 const UserPage = () => {
-  const { jokes } = useParams(); // Get user ID from URL
+  const { jokes: userId } = useParams(); // Get user ID from URL
   const [user, setUser] = useState(null);
   const [userJokes, setUserJokes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [currentUser, setCurrentUser] = useState(null); // Store logged-in user
+  const [currentUser, setCurrentUser] = useState(null);
 
   useEffect(() => {
-    if (!jokes) return;
+    if (!userId) return;
 
     const fetchUser = async () => {
       try {
-        console.log("Fetching jokes for user:", jokes);
-        const res = await fetch(`/api/jokes/${jokes}`);
+        console.log("Fetching jokes for user:", userId);
+        const res = await fetch(`/api/jokes/${userId}`);
 
-        if (!res.ok) throw new Error("Failed to fetch user details try again");
+        if (!res.ok) {
+          const errorText = await res.text();
+          throw new Error(`Failed to fetch user details: ${errorText}`);
+        }
 
         const data = await res.json();
+        if (!data.user) throw new Error("User not found");
+
         setUser(data.user);
         setUserJokes(data.user.jokes || []);
       } catch (err) {
@@ -38,13 +43,17 @@ const UserPage = () => {
 
     const fetchCurrentUser = async () => {
       try {
+        const authToken = document.cookie
+          .split("; ")
+          .find((row) => row.startsWith("auth_token="))
+          ?.split("=")[1];
+
+        if (!authToken) return;
+
         const res = await fetch("/api/user", {
           method: "GET",
           headers: {
-            Authorization: `Bearer ${document.cookie
-              .split("; ")
-              .find((row) => row.startsWith("auth_token="))
-              ?.split("=")[1]}`,
+            Authorization: `Bearer ${authToken}`,
           },
         });
 
@@ -59,36 +68,7 @@ const UserPage = () => {
 
     fetchUser();
     fetchCurrentUser();
-  }, [jokes]);
-
-  // ✅ Handle Like Toggle
-  const handleLike = async (jokeId) => {
-    if (!currentUser) {
-      alert("You need to log in to like jokes.");
-      return;
-    }
-
-    try {
-      const res = await fetch("/api/jokes/like", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ jokeId }),
-      });
-
-      if (!res.ok) throw new Error("Failed to like the joke.");
-
-      const { joke } = await res.json();
-
-      setUserJokes((prevJokes) =>
-        prevJokes.map((j) =>
-          j._id === joke._id ? { ...j, likes: [...joke.likes] } : j
-        )
-      );
-    } catch (err) {
-      console.error("Like Error:", err.message);
-      alert(err.message);
-    }
-  };
+  }, [userId]);
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -175,7 +155,7 @@ const UserPage = () => {
                   );
                 })
               ) : (
-                <p className="text-center text-xl text-gray-600 w-full col-span-3">
+                <p className="text-center text-gray-600 font-bold mt-6">
                   No jokes found.
                 </p>
               )}
