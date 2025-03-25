@@ -1,34 +1,42 @@
 import { NextResponse } from "next/server";
-import { dbConnect } from "@/lib/db";
-import { User } from "@/lib/model/User";
+import { connectDB } from "@/lib/mongodb";
+import Joke from "@/models/joke";
+import User from "@/models/user";
 
-export async function GET(req, context) {
+export async function GET(req, { params }) {
   try {
-    const params = await context.params; // ✅ Await params before destructuring
-    const { jokes } = params;
+    await connectDB();
 
-    if (!jokes) {
+    const { id } = params; // Get user ID from URL
+    console.log("🔍 Fetching user data for ID:", id);
+
+    if (!id) {
       return NextResponse.json(
-        { success: false, message: "Jokes parameter is missing" },
+        { success: false, message: "User ID is required" },
         { status: 400 }
       );
     }
 
-    await dbConnect();
-
-    // Fetch the user based on the dynamic 'jokes' ID
-    const user = await User.findById(jokes).populate("jokes");
-
+    // Find user by ID
+    const user = await User.findById(id);
     if (!user) {
+      console.log("⚠️ User not found");
       return NextResponse.json(
         { success: false, message: "User not found" },
         { status: 404 }
       );
     }
 
-    return NextResponse.json({ success: true, user });
+    // Fetch all jokes by the user
+    const jokes = await Joke.find({ userId: id }).sort({ createdAt: -1 });
+
+    return NextResponse.json(
+      { success: true, user, jokes },
+      { status: 200 }
+    );
+
   } catch (error) {
-    console.error("Error fetching user details:", error.message);
+    console.error("❌ API Error in /api/jokes/[id]:", error);
     return NextResponse.json(
       { success: false, message: "Internal Server Error" },
       { status: 500 }
