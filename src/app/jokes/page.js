@@ -1,5 +1,5 @@
 'use client';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import Cookies from 'js-cookie';
 import Navbar from '@/components/Navbar';
@@ -8,11 +8,40 @@ import JokesSkeleton from '@/components/JokesSkeleton';
 
 export default function JokesPage() {
   const [jokes, setJokes] = useState([]);
+  const [allJokes, setAllJokes] = useState([]);
   const [error, setError] = useState(null);
   const [userId, setUserId] = useState(null);
   const [loading, setLoading] = useState(true);
   const [category, setCategory] = useState('most-popular');
+  const [search, setSearch] = useState('');
   const router = useRouter();
+
+  // Filter jokes based on search term and category
+  const filteredJokes = useMemo(() => {
+    let result = [...allJokes];
+    
+    // Apply search filter
+    if (search) {
+      const searchTerm = search.toLowerCase();
+      result = result.filter(joke => 
+        joke.userName?.toLowerCase().includes(searchTerm)
+      );
+    }
+    
+    // Apply category filter
+    switch (category) {
+      case 'most-popular':
+        return result.sort((a, b) => (b.likeCount || 0) - (a.likeCount || 0));
+      case 'latest':
+        return result.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+      case 'oldest':
+        return result.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
+      case 'my-jokes':
+        return result.filter(joke => joke.user === userId);
+      default:
+        return result;
+    }
+  }, [allJokes, search, category, userId]);
 
   useEffect(() => {
     const token = Cookies.get('auth_token');
@@ -35,14 +64,12 @@ export default function JokesPage() {
     const fetchJokes = async () => {
       try {
         setLoading(true);
-        const url = `/api/alljokes?category=${category}${
-          category === 'my-jokes' ? `&userId=${userId}` : ''
-        }`;
-        const response = await fetch(url);
+        const response = await fetch('/api/alljokes');
         if (!response.ok) {
           throw new Error('Failed to fetch jokes');
         }
         const data = await response.json();
+        setAllJokes(data.jokes);
         setJokes(data.jokes);
       } catch (error) {
         setError(error.message);
@@ -51,10 +78,12 @@ export default function JokesPage() {
       }
     };
 
-    if (userId || category !== 'my-jokes') {
-      fetchJokes();
-    }
-  }, [category, userId]);
+    fetchJokes();
+  }, []);
+
+  useEffect(() => {
+    setJokes(filteredJokes);
+  }, [filteredJokes]);
 
   const speakJoke = (text, language) => {
     if (!window.speechSynthesis) {
@@ -78,8 +107,19 @@ export default function JokesPage() {
           <p className="text-lg text-gray-700 leading-relaxed mb-8">
             Enjoy the latest and funniest jokes shared by our users!
           </p>
+
+          <div className="mb-6">
+            <input
+              type="text"
+              placeholder="Search by username..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="w-full p-3 border-2 border-blue-300 rounded-lg bg-white shadow-md 
+                        focus:border-blue-500 focus:ring-2 focus:ring-blue-200 
+                        transition-all duration-200 text-gray-800 font-medium"
+            />
+          </div>
           
-          {/* Category Dropdown with Improved Styling */}
           <div className="mb-6">
             <label className="block text-lg font-semibold text-gray-700 mb-2">
               Filter by:
@@ -91,28 +131,16 @@ export default function JokesPage() {
                         focus:border-purple-500 focus:ring-2 focus:ring-purple-200 
                         transition-all duration-200 text-gray-800 font-medium"
             >
-              <option 
-                value="most-popular" 
-                className="bg-purple-100 text-purple-800"
-              >
+              <option value="most-popular" className="bg-purple-100 text-purple-800">
                 Most Popular
               </option>
-              <option 
-                value="latest" 
-                className="bg-blue-100 text-blue-800"
-              >
+              <option value="latest" className="bg-blue-100 text-blue-800">
                 Latest
               </option>
-              <option 
-                value="oldest" 
-                className="bg-green-100 text-green-800"
-              >
+              <option value="oldest" className="bg-green-100 text-green-800">
                 Oldest
               </option>
-              <option 
-                value="my-jokes" 
-                className="bg-yellow-100 text-yellow-800"
-              >
+              <option value="my-jokes" className="bg-yellow-100 text-yellow-800">
                 My Jokes
               </option>
             </select>
@@ -132,6 +160,8 @@ export default function JokesPage() {
                 <p className="text-xl text-gray-600">
                   {category === 'my-jokes' 
                     ? "You haven't posted any jokes yet!" 
+                    : search
+                    ? "No jokes found matching your search"
                     : "No jokes available at the moment. Please check back later!"}
                 </p>
               </div>
@@ -154,9 +184,9 @@ export default function JokesPage() {
                       <span className="text-sm text-gray-500">
                         {new Date(joke.createdAt).toLocaleDateString()}
                       </span>
-                      <span className="text-sm font-semibold text-pink-600">
+                      {/* <span className="text-sm font-semibold text-pink-600">
                         {joke.likeCount} likes
-                      </span>
+                      </span> */}
                     </div>
                   </div>
 
@@ -167,19 +197,15 @@ export default function JokesPage() {
                       jokeId={joke._id}
                       initialLikes={joke.likes || []}
                       userId={userId}
-                      onLikeChange={(jokeId, updatedLikes) =>
-                        setJokes((prevJokes) =>
-                          prevJokes.map((j) =>
+                      onLikeChange={(jokeId, updatedLikes) => {
+                        setAllJokes(prev => 
+                          prev.map(j => 
                             j._id === jokeId 
-                              ? { 
-                                  ...j, 
-                                  likes: updatedLikes,
-                                  likeCount: updatedLikes.length 
-                                } 
+                              ? { ...j, likes: updatedLikes, likeCount: updatedLikes.length } 
                               : j
                           )
-                        )
-                      }
+                        );
+                      }}
                     />
                     <div className="flex space-x-4">
                       <button
