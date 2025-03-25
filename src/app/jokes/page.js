@@ -4,15 +4,14 @@ import { useRouter } from 'next/navigation';
 import Cookies from 'js-cookie';
 import Navbar from '@/components/Navbar';
 import LikeButton from '@/components/LikeButton';
-import JokesSkeleton from '@/components/JokesSkeleton'; // Skeleton loader component
+import JokesSkeleton from '@/components/JokesSkeleton';
 
 export default function JokesPage() {
   const [jokes, setJokes] = useState([]);
   const [error, setError] = useState(null);
   const [userId, setUserId] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [voices, setVoices] = useState([]);
-  const [category, setCategory] = useState('most-popular'); // Added category state
+  const [category, setCategory] = useState('most-popular');
   const router = useRouter();
 
   useEffect(() => {
@@ -35,7 +34,11 @@ export default function JokesPage() {
   useEffect(() => {
     const fetchJokes = async () => {
       try {
-        const response = await fetch(`/api/alljokes?category=${category}`);
+        setLoading(true);
+        const url = `/api/alljokes?category=${category}${
+          category === 'my-jokes' ? `&userId=${userId}` : ''
+        }`;
+        const response = await fetch(url);
         if (!response.ok) {
           throw new Error('Failed to fetch jokes');
         }
@@ -48,8 +51,10 @@ export default function JokesPage() {
       }
     };
 
-    fetchJokes();
-  }, [category]);
+    if (userId || category !== 'my-jokes') {
+      fetchJokes();
+    }
+  }, [category, userId]);
 
   const speakJoke = (text, language) => {
     if (!window.speechSynthesis) {
@@ -74,56 +79,104 @@ export default function JokesPage() {
             Enjoy the latest and funniest jokes shared by our users!
           </p>
           
-          {/* Category Dropdown */}
+          {/* Category Dropdown with Improved Styling */}
           <div className="mb-6">
-            <label className="block text-lg font-semibold text-gray-700">Filter by:</label>
+            <label className="block text-lg font-semibold text-gray-700 mb-2">
+              Filter by:
+            </label>
             <select
               value={category}
               onChange={(e) => setCategory(e.target.value)}
-              className="mt-2 p-2 border rounded-lg w-full bg-white shadow-md"
+              className="mt-2 p-3 border-2 border-purple-200 rounded-lg w-full bg-white shadow-md 
+                        focus:border-purple-500 focus:ring-2 focus:ring-purple-200 
+                        transition-all duration-200 text-gray-800 font-medium"
             >
-              <option value="most-popular">Most Popular</option>
-              <option value="newest">Newest</option>
+              <option 
+                value="most-popular" 
+                className="bg-purple-100 text-purple-800"
+              >
+                Most Popular
+              </option>
+              <option 
+                value="latest" 
+                className="bg-blue-100 text-blue-800"
+              >
+                Latest
+              </option>
+              <option 
+                value="oldest" 
+                className="bg-green-100 text-green-800"
+              >
+                Oldest
+              </option>
+              <option 
+                value="my-jokes" 
+                className="bg-yellow-100 text-yellow-800"
+              >
+                My Jokes
+              </option>
             </select>
           </div>
         </div>
 
         {loading ? (
           <JokesSkeleton />
+        ) : error ? (
+          <div className="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-6 rounded">
+            <p>{error}</p>
+          </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-1 gap-6 mt-12">
             {jokes.length === 0 ? (
-              <p className="text-center text-xl text-gray-600 w-full col-span-3">
-                No jokes available at the moment. Please check back later!
-              </p>
+              <div className="col-span-3 py-8 text-center">
+                <p className="text-xl text-gray-600">
+                  {category === 'my-jokes' 
+                    ? "You haven't posted any jokes yet!" 
+                    : "No jokes available at the moment. Please check back later!"}
+                </p>
+              </div>
             ) : (
               jokes.map((joke) => (
-                <div key={joke._id} className="bg-white p-4 rounded-lg shadow-md">
-                  <div className="flex justify-between items-center">
+                <div 
+                  key={joke._id} 
+                  className="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow"
+                >
+                  <div className="flex justify-between items-center mb-4">
                     <p
-                      className="text-md text-blue-500 font-semibold cursor-pointer"
+                      className="text-md font-semibold text-purple-600 cursor-pointer hover:text-purple-800 transition-colors"
                       onClick={() =>
                         joke.user?._id && router.push(`/jokes/${joke.user._id}`)
                       }
                     >
                       @{joke.userName || 'Anonymous'}
                     </p>
-                    <p className="text-sm text-gray-500">
-                      {new Date(joke.createdAt).toLocaleDateString()}
-                    </p>
+                    <div className="flex items-center space-x-2">
+                      <span className="text-sm text-gray-500">
+                        {new Date(joke.createdAt).toLocaleDateString()}
+                      </span>
+                      <span className="text-sm font-semibold text-pink-600">
+                        {joke.likeCount} likes
+                      </span>
+                    </div>
                   </div>
 
-                  <p className="text-lg italic text-gray-700 m-4">{joke.content}</p>
+                  <p className="text-lg italic text-gray-700 mb-6">{joke.content}</p>
 
-                  <div className="flex flex-col space-y-2">
+                  <div className="flex flex-col space-y-3">
                     <LikeButton
                       jokeId={joke._id}
-                      initialLikes={joke.likedBy}
+                      initialLikes={joke.likes || []}
                       userId={userId}
                       onLikeChange={(jokeId, updatedLikes) =>
                         setJokes((prevJokes) =>
                           prevJokes.map((j) =>
-                            j._id === jokeId ? { ...j, likedBy: updatedLikes } : j
+                            j._id === jokeId 
+                              ? { 
+                                  ...j, 
+                                  likes: updatedLikes,
+                                  likeCount: updatedLikes.length 
+                                } 
+                              : j
                           )
                         )
                       }
@@ -131,13 +184,13 @@ export default function JokesPage() {
                     <div className="flex space-x-4">
                       <button
                         onClick={() => speakJoke(joke.content, "english")}
-                        className="bg-green-500 text-white px-4 py-2 rounded-lg shadow-md hover:bg-green-600 transition"
+                        className="bg-gradient-to-r from-green-500 to-green-600 text-white px-4 py-2 rounded-lg shadow-md hover:from-green-600 hover:to-green-700 transition-all"
                       >
                         Speak (English)
                       </button>
                       <button
                         onClick={() => speakJoke(joke.content, "hindi")}
-                        className="bg-orange-500 text-white px-4 py-2 rounded-lg shadow-md hover:bg-orange-600 transition"
+                        className="bg-gradient-to-r from-orange-500 to-orange-600 text-white px-4 py-2 rounded-lg shadow-md hover:from-orange-600 hover:to-orange-700 transition-all"
                       >
                         बोलो (Hindi)
                       </button>
