@@ -5,7 +5,8 @@ import { useRouter } from "next/navigation";
 import Cookies from "js-cookie";
 import Link from "next/link";
 import Image from "next/image";
-import { toast } from "react-toastify";
+import { toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 export default function Login() {
   const router = useRouter();
@@ -35,15 +36,15 @@ export default function Login() {
 
       if (res.status === 200) {
         Cookies.set("auth_token", data.token, { expires: 1 });
-        toast.success("Login successful!");
+        toast.success("Login successful!", { position: "top-right", autoClose: 2000 });
         setTimeout(() => {
           router.push("/home");
-        }, 2000);
+        }, 2500);
       } else {
-        toast.error(data.message);
+        toast.error(data.message, { position: "top-right" });
       }
     } catch (err) {
-      toast.error("Something went wrong");
+      toast.error("Something went wrong", { position: "top-right" });
     } finally {
       setLoading(false);
     }
@@ -51,6 +52,9 @@ export default function Login() {
 
   return (
     <div className="grid grid-rows-[auto_1fr_auto] items-center justify-items-center min-h-screen bg-gradient-to-br from-blue-300 via-purple-400 to-pink-500 text-white p-8 sm:p-20 gap-16 font-[var(--font-geist-sans)]">
+      {/* Ensure ToastContainer is present */}
+      <ToastContainer position="top-right" autoClose={2000} />
+      
       <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start text-center sm:text-left">
         <Image src="/next.svg" alt="Next.js logo" width={180} height={38} priority />
         <form
