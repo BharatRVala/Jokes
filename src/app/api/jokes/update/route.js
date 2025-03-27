@@ -1,64 +1,37 @@
-import bcrypt from 'bcryptjs';
-import { dbConnect } from '@/lib/db';
-import { User } from '@/lib/model/User';
+// api/jokes/update/route.js
+import { Joke } from '@/lib/model/Joke'; // Import the Joke model
+import mongoose from 'mongoose';
 
 export async function PUT(req) {
   try {
-    const { userId, userName, email, password } = await req.json();
+    // Parse the request body
+    const { jokeId, userId, content } = await req.json();
 
-    if (!userId) {
-      return new Response(JSON.stringify({ message: 'User ID is required' }), { status: 400 });
+    // Validate jokeId and userId format
+    if (!mongoose.Types.ObjectId.isValid(jokeId) || !mongoose.Types.ObjectId.isValid(userId)) {
+      return new Response('Invalid jokeId or userId format', { status: 400 });
     }
 
-    if (!userName && !email && !password) {
-      return new Response(JSON.stringify({ message: 'No fields to update' }), { status: 400 });
+    // Find the joke by ID
+    const joke = await Joke.findById(jokeId);
+
+    if (!joke) {
+      return new Response('Joke not found', { status: 404 });
     }
 
-    await dbConnect();
-    const user = await User.findById(userId);
-    if (!user) {
-      return new Response(JSON.stringify({ message: 'User not found' }), { status: 404 });
+    // Ensure the user requesting the update is the owner of the joke
+    if (joke.user.toString() !== userId) {
+      return new Response('Unauthorized: You can only edit your own jokes', { status: 403 });
     }
 
-    // Validate email format
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (email && !emailRegex.test(email)) {
-      return new Response(JSON.stringify({ message: 'Invalid email format' }), { status: 400 });
-    }
+    // Update the joke content
+    joke.content = content;
+    await joke.save();
 
-    // Check if email already exists (excluding the current user)
-    if (email && email !== user.email) {
-      const existingUser = await User.findOne({ email });
-      if (existingUser) {
-        return new Response(JSON.stringify({ message: 'This email is already in use' }), { status: 400 });
-      }
-      user.email = email;
-    }
-
-    // Check if username already exists (excluding the current user)
-    if (userName && userName !== user.userName) {
-      const existingUser = await User.findOne({ userName });
-      if (existingUser) {
-        return new Response(JSON.stringify({ message: 'This username is already in use' }), { status: 400 });
-      }
-      user.userName = userName;
-    }
-
-    if (password) {
-      const hashedPassword = await bcrypt.hash(password, 10);
-      user.password = hashedPassword;
-    }
-
-    await user.save();
-
-    return new Response(
-      JSON.stringify({ 
-        message: 'User updated successfully', 
-        user: { id: user._id, userName: user.userName, email: user.email } 
-      }),
-      { status: 200 }
-    );
+    // Return the updated joke
+    return new Response(JSON.stringify(joke), { status: 200 });
   } catch (error) {
-    return new Response(JSON.stringify({ message: 'Something went wrong', error: error.message }), { status: 500 });
+    console.error('Error updating joke:', error);
+    return new Response('Failed to update joke. Please try again.', { status: 500 });
   }
 }
