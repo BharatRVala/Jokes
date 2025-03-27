@@ -4,44 +4,43 @@ import { User } from '@/lib/model/User';
 
 export async function POST(req) {
   try {
-    // Parse the request body
     const { userName, email, password } = await req.json();
 
-    // Validate the input
-    if (!userName || !email || !password) {
+    if (!userName) {
+      return new Response(JSON.stringify({ message: 'UserName is required' }), { status: 400 });
+    }
+
+    if (!email) {
+      return new Response(JSON.stringify({ message: 'Email is required' }), { status: 400 });
+    }
+
+    await dbConnect();
+
+    // 🔹 First, check if username exists
+    const existingUserByName = await User.findOne({ userName });
+    if (existingUserByName) {
+      return new Response(JSON.stringify({ message: 'UserName already exists' }), { status: 409 });
+    }
+
+    // 🔹 Second, check if email exists
+    const existingUserByEmail = await User.findOne({ email });
+    if (existingUserByEmail) {
+      return new Response(JSON.stringify({ message: 'Email already exists' }), { status: 409 });
+    }
+
+    // 🔹 Third, validate password (only if username & email are unique)
+    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{5,}$/;
+    if (!passwordRegex.test(password)) {
       return new Response(
-        JSON.stringify({ message: 'userName, email, and password are required' }),
+        JSON.stringify({ message: 'Password must contain at least 1 uppercase, 1 lowercase, 1 number, 1 special character, and be at least 5 characters long.' }),
         { status: 400 }
       );
     }
 
-    // Connect to the database
-    await dbConnect();
-
-    // Check if the email or username already exists
-    const existingUser = await User.findOne({
-      $or: [{ email }, { userName }],
-    });
-
-    if (existingUser) {
-      const conflictField = existingUser.email === email ? 'email' : 'userName';
-      return new Response(
-        JSON.stringify({ message: `${conflictField} already exists` }),
-        { status: 409 }
-      );
-    }
-
-    // Hash the password
+    // Hash password and create user
     const hashedPassword = await bcrypt.hash(password, 10);
+    const user = await User.create({ userName, email, password: hashedPassword });
 
-    // Create a new user
-    const user = await User.create({
-      userName,
-      email,
-      password: hashedPassword,
-    });
-
-    // Respond with success
     return new Response(
       JSON.stringify({ message: 'Signup successful', user }),
       { status: 201 }
