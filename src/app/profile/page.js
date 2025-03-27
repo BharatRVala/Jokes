@@ -154,7 +154,7 @@ export default function Profile() {
 
   const handleUpdateProfile = async () => {
     const token = Cookies.get('auth_token');
-
+  
     try {
       const res = await fetch('/api/update', {
         method: 'PUT',
@@ -168,24 +168,28 @@ export default function Profile() {
           email: editedEmail,
         }),
       });
-
-      if (res.ok) {
-        const data = await res.json();
-        setUser({
-          ...user,
-          userName: data.user.userName,
-          email: data.user.email,
-        });
-        setEditProfileModal(false);
-        setMessage('Profile updated successfully!');
-      } else {
-        const data = await res.json();
-        setError(data.error || 'Failed to update profile.');
+  
+      const data = await res.json();
+  
+      if (!res.ok) {
+        setError(data.message || 'Failed to update profile.'); // Show backend error
+        return;
       }
+  
+      // Update user state with new values
+      setUser((prevUser) => ({
+        ...prevUser,
+        userName: data.user.userName,
+        email: data.user.email,
+      }));
+  
+      setEditProfileModal(false);
+      setMessage('Profile updated successfully!');
     } catch (err) {
       setError('An error occurred while updating your profile.');
     }
   };
+  
 
   const handleDeleteAccount = async () => {
     const token = Cookies.get('auth_token');

@@ -34,9 +34,20 @@ export async function PUT(req) {
       );
     }
 
-    // Update the fields if they are provided
-    if (userName) user.userName = userName; // Ensure this matches your schema
-    if (email) user.email = email;
+    // Check if the new email already exists in the database (except for the current user)
+    if (email && email !== user.email) {
+      const existingUser = await User.findOne({ email });
+      if (existingUser) {
+        return new Response(
+          JSON.stringify({ message: 'This email is already in use' }),
+          { status: 400 }
+        );
+      }
+      user.email = email;
+    }
+
+    // Update the username if provided
+    if (userName) user.userName = userName;
 
     // If a password is provided, hash it before saving
     if (password) {
