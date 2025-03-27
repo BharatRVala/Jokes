@@ -6,6 +6,7 @@ import Cookies from 'js-cookie';
 import { useRouter } from 'next/navigation';
 import ProfileInfo from '@/components/ProfileInfo';
 import MyJokes from '@/components/MyJokes';
+import { toast } from "react-toastify";
 import EditJokeModal from '@/components/EditJokeModal';
 import EditProfileModal from '@/components/EditProfileModal';
 import DeleteConfirmModal from '@/components/DeleteConfirmModal';
@@ -88,19 +89,19 @@ export default function Profile() {
   };
 
   const handleUpdateJoke = async () => {
-    setJokeError('');
-    const token = Cookies.get('auth_token');
+    setJokeError("");
+    const token = Cookies.get("auth_token");
 
     if (!editedJokeContent.trim()) {
-      setJokeError('Joke content cannot be empty.');
+      setJokeError("Joke content cannot be empty.");
       return;
     }
 
     try {
-      const res = await fetch('/api/jokes/update', {
-        method: 'PUT',
+      const res = await fetch("/api/jokes/update", {
+        method: "PUT",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
@@ -116,14 +117,18 @@ export default function Profile() {
           prev.map((joke) => (joke._id === updatedJoke._id ? updatedJoke : joke))
         );
         setEditJokeModal(false);
+        toast.success("Joke updated successfully!");
       } else {
         const data = await res.json();
-        setJokeError(data.error || 'Failed to update the joke.');
+        setJokeError(data.error || "Failed to update the joke.");
+        toast.error(data.error || "Failed to update the joke.");
       }
     } catch (err) {
-      setJokeError('An error occurred. Please try again.');
+      setJokeError("An error occurred. Please try again.");
+      toast.error("Something went wrong. Please try again.");
     }
   };
+
 
   const handleDeleteJoke = async (jokeId) => {
     const token = Cookies.get('auth_token');
@@ -143,14 +148,28 @@ export default function Profile() {
 
       if (res.ok) {
         setJokes((prev) => prev.filter((joke) => joke._id !== jokeId));
+        toast.success('Joke deleted successfully!', {
+          position: 'top-right',
+          autoClose: 3000,
+        });
       } else {
         const data = await res.json();
         setDeleteError(data.error || 'Failed to delete the joke.');
+        toast.error(data.error || 'Something went wrong. Please try again.', {
+          position: 'top-right',
+          autoClose: 3000,
+        });
       }
     } catch (err) {
       setDeleteError('An error occurred. Please try again.');
+      toast.error('An error occurred. Please try again.', {
+        position: 'top-right',
+        autoClose: 3000,
+      });
     }
   };
+
+
 
   const handleUpdateProfile = async () => {
     const token = Cookies.get('auth_token');
@@ -172,11 +191,10 @@ export default function Profile() {
       const data = await res.json();
   
       if (!res.ok) {
-        setError(data.message || 'Failed to update profile.'); // Show backend error
+        toast.error(data.message || 'Failed to update profile.');
         return;
       }
   
-      // Update user state with new values
       setUser((prevUser) => ({
         ...prevUser,
         userName: data.user.userName,
@@ -184,16 +202,16 @@ export default function Profile() {
       }));
   
       setEditProfileModal(false);
-      setMessage('Profile updated successfully!');
+      toast.success('Profile updated successfully!');
     } catch (err) {
-      setError('An error occurred while updating your profile.');
+      toast.error('An error occurred while updating your profile.');
     }
   };
   
 
   const handleDeleteAccount = async () => {
     const token = Cookies.get('auth_token');
-
+  
     try {
       const res = await fetch('/api/delete', {
         method: 'DELETE',
@@ -202,16 +220,19 @@ export default function Profile() {
           Authorization: `Bearer ${token}`,
         },
       });
-
+  
       if (res.ok) {
         Cookies.remove('auth_token');
+        toast.success('Account deleted successfully!');
         router.push('/login');
       } else {
         const data = await res.json();
         setError(data.error || 'Failed to delete account.');
+        toast.error(data.error || 'Something went wrong. Please try again.');
       }
     } catch (err) {
       setError('An error occurred while deleting your account.');
+      toast.error('Something went wrong. Please try again.');
     }
   };
 
@@ -237,16 +258,28 @@ export default function Profile() {
           />
 
           {/* Jokes Section */}
-          <MyJokes
-            jokes={jokes}
-            handleEditJoke={handleEditJoke}
-            handleDeleteJoke={handleDeleteJoke}
+          <MyJokes 
+            jokes={jokes} 
+            handleEditJoke={handleEditJoke} 
+            handleDeleteJoke={handleDeleteJoke} 
           />
+          
         </div>
       )}
 
       {/* Edit Joke Modal */}
-      {editJokeModal && (
+      {editProfileModal && (
+  <EditProfileModal
+    editedName={editedName}
+    setEditedName={setEditedName}
+    editedEmail={editedEmail}
+    setEditedEmail={setEditedEmail}
+    setEditProfileModal={setEditProfileModal}
+    handleUpdateProfile={handleUpdateProfile}
+  />
+)}
+
+{editJokeModal && (
         <EditJokeModal
           editedJokeContent={editedJokeContent}
           setEditedJokeContent={setEditedJokeContent}
@@ -255,19 +288,6 @@ export default function Profile() {
           handleUpdateJoke={handleUpdateJoke}
         />
       )}
-
-      {/* Edit Profile Modal */}
-      {editProfileModal && (
-        <EditProfileModal
-          editedName={editedName}
-          setEditedName={setEditedName}
-          editedEmail={editedEmail}
-          setEditedEmail={setEditedEmail}
-          setEditProfileModal={setEditProfileModal}
-          handleUpdateProfile={handleUpdateProfile}
-        />
-      )}
-
       {/* Delete Account Confirmation Modal */}
       {showDeleteConfirm && (
         <DeleteConfirmModal
