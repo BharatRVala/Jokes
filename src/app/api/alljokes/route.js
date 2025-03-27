@@ -25,9 +25,10 @@ export async function GET(req) {
         { $sort: { likesCount: -1, createdAt: -1 } }
       ];
 
-      if (userId && category === "my-jokes") {
-        aggregationPipeline.unshift({ $match: { user: userId } });
+      if (category === "my-jokes" && userId) {
+        filter = { user: userId };  // Ensure userId is correctly used
       }
+      
 
       const jokes = await Joke.aggregate(aggregationPipeline)
         .lookup({

@@ -37,8 +37,8 @@ export default function JokesPage() {
       case 'oldest':
         return result.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
       case 'my-jokes':
-        return result.filter(joke => joke.user === userId);
-      default:
+        return result.filter(joke => joke.user?._id === userId);
+        default:
         return result;
     }
   }, [allJokes, search, category, userId]);
