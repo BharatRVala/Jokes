@@ -3,6 +3,8 @@
 import { useRouter, usePathname } from 'next/navigation';
 import Cookies from 'js-cookie';
 import { useState } from 'react';
+import { toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 export default function Navbar() {
   const router = useRouter();
@@ -11,7 +13,10 @@ export default function Navbar() {
 
   const handleLogout = () => {
     Cookies.remove('auth_token');
-    router.push('/');
+    toast.success('Logout successful!', {
+      onClose: () => router.push('/'), // Redirect after toast
+      autoClose: 1500,
+    });
   };
 
   const navItems = [

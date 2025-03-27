@@ -13,7 +13,6 @@ export async function POST(req) {
     }
 
     await dbConnect();
-
     const user = await User.findOne({ email });
     if (!user) {
       return new Response(JSON.stringify({ message: 'User not found' }), { status: 404 });
@@ -25,13 +24,12 @@ export async function POST(req) {
     }
 
     const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, { expiresIn: '7d' });
-
     const cookies = serialize('auth_token', token, {
-      httpOnly: false, // Set to false for frontend-accessible cookies
-      secure: process.env.NODE_ENV === 'production', 
+      httpOnly: false,
+      secure: process.env.NODE_ENV === 'production',
       sameSite: 'strict',
       maxAge: 7 * 24 * 60 * 60 * 1000,
-      path: '/', // Ensure the cookie is available across the app
+      path: '/',
     });
 
     return new Response(JSON.stringify({ message: 'Login successful', token }), {

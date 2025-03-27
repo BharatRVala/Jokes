@@ -5,11 +5,11 @@ import { useRouter } from "next/navigation";
 import Navbar from "@/components/Navbar";
 import Cookies from "js-cookie";
 import jwt from "jsonwebtoken";
+import { toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 export default function CreateJoke() {
   const [content, setContent] = useState("");
-  const [error, setError] = useState("");
-  const [success, setSuccess] = useState("");
   const [loading, setLoading] = useState(false);
   const [userId, setUserId] = useState(null);
   const router = useRouter();
@@ -33,31 +33,23 @@ export default function CreateJoke() {
   }, []);
 
   const handlePublish = async () => {
-    setError("");
-    setSuccess("");
-    setLoading(true);
-
     if (!content.trim()) {
-      setError("Joke content cannot be empty.");
-      setLoading(false);
+      toast.error("Joke content cannot be empty.");
       return;
     }
 
     if (!userId) {
-      setError("You must be logged in to publish jokes.");
-      setLoading(false);
+      toast.error("You must be logged in to publish jokes.");
       router.push("/login");
       return;
     }
 
-    console.log("Publishing joke with userId:", userId);
+    setLoading(true);
 
     try {
       const response = await fetch("/api/jokes/create", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ content, userId }),
       });
 
@@ -66,12 +58,11 @@ export default function CreateJoke() {
         throw new Error(data.error || "Failed to publish joke.");
       }
 
-      console.log("Joke published successfully!");
-      setSuccess("Joke published successfully!");
+      toast.success("Joke published successfully!");
       setContent("");
     } catch (error) {
       console.error("Error in handlePublish:", error.message);
-      setError(error.message);
+      toast.error("Something went wrong. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -82,9 +73,6 @@ export default function CreateJoke() {
       <Navbar />
       <div className="max-w-4xl mx-auto mt-12 p-6 bg-white shadow-md rounded-md">
         <h1 className="text-2xl text-blue-600 font-bold mb-4">Create a Joke</h1>
-
-        {error && <p className="text-red-500 mb-4">{error}</p>}
-        {success && <p className="text-green-500 mb-4">{success}</p>}
 
         <textarea
           className="w-full p-3 border border-gray-300 rounded mb-4 bg-gray-100 text-gray-700 focus:bg-white focus:ring-2 focus:ring-blue-500 focus:outline-none"

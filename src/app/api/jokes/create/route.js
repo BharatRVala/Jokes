@@ -1,11 +1,11 @@
-import { Joke } from '@/lib/model/Joke'; // Import the Joke model
-import { User } from '@/lib/model/User'; // Import the User model
+import { Joke } from '@/lib/model/Joke';
+import { User } from '@/lib/model/User';
 import mongoose from 'mongoose';
-import { dbConnect } from '@/lib/db'; // Ensure database connection
+import { dbConnect } from '@/lib/db';
 
 export async function POST(req) {
   try {
-    await dbConnect(); // Ensure DB connection
+    await dbConnect();
 
     const { content, userId } = await req.json();
     console.log("Received request to create joke:", { content, userId });
@@ -35,7 +35,7 @@ export async function POST(req) {
     console.log("Joke created successfully:", newJoke);
 
     return new Response(
-      JSON.stringify(newJoke),
+      JSON.stringify({ message: "Joke published successfully!", joke: newJoke }),
       { status: 201, headers: { 'Content-Type': 'application/json' } }
     );
   } catch (error) {
