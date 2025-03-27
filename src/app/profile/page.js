@@ -91,12 +91,12 @@ export default function Profile() {
   const handleUpdateJoke = async () => {
     setJokeError("");
     const token = Cookies.get("auth_token");
-
+  
     if (!editedJokeContent.trim()) {
       setJokeError("Joke content cannot be empty.");
       return;
     }
-
+  
     try {
       const res = await fetch("/api/jokes/update", {
         method: "PUT",
@@ -110,29 +110,27 @@ export default function Profile() {
           content: editedJokeContent,
         }),
       });
-
-      if (res.ok) {
-        const updatedJoke = await res.json();
-        setJokes((prev) =>
-          prev.map((joke) => (joke._id === updatedJoke._id ? updatedJoke : joke))
-        );
-        setEditJokeModal(false);
-        toast.success("Joke updated successfully!");
-      } else {
+  
+      if (!res.ok) {
         const data = await res.json();
-        setJokeError(data.error || "Failed to update the joke.");
-        toast.error(data.error || "Failed to update the joke.");
+        throw new Error(data.error || "Failed to update the joke.");
       }
+  
+      const updatedJoke = await res.json();
+      setJokes((prev) =>
+        prev.map((joke) => (joke._id === updatedJoke._id ? updatedJoke : joke))
+      );
+      setEditJokeModal(false);
+      return true; // Indicate success
     } catch (err) {
-      setJokeError("An error occurred. Please try again.");
-      toast.error("Something went wrong. Please try again.");
+      setJokeError(err.message || "An error occurred. Please try again.");
+      throw err; // Re-throw to be caught in the modal
     }
   };
-
-
+  
   const handleDeleteJoke = async (jokeId) => {
     const token = Cookies.get('auth_token');
-
+  
     try {
       const res = await fetch('/api/jokes/delete', {
         method: 'DELETE',
@@ -145,30 +143,22 @@ export default function Profile() {
           userId: user._id,
         }),
       });
-
-      if (res.ok) {
-        setJokes((prev) => prev.filter((joke) => joke._id !== jokeId));
-        toast.success('Joke deleted successfully!', {
-          position: 'top-right',
-          autoClose: 3000,
-        });
-      } else {
+  
+      if (!res.ok) {
         const data = await res.json();
-        setDeleteError(data.error || 'Failed to delete the joke.');
-        toast.error(data.error || 'Something went wrong. Please try again.', {
-          position: 'top-right',
-          autoClose: 3000,
-        });
+        throw new Error(data.error || 'Failed to delete the joke.');
       }
+  
+      setJokes((prev) => prev.filter((joke) => joke._id !== jokeId));
+      return true; // Indicate success
     } catch (err) {
-      setDeleteError('An error occurred. Please try again.');
-      toast.error('An error occurred. Please try again.', {
+      toast.error(err.message || 'An error occurred. Please try again.', {
         position: 'top-right',
         autoClose: 3000,
       });
+      throw err; // Re-throw to be caught in the modal
     }
   };
-
 
 
   const handleUpdateProfile = async () => {
@@ -191,8 +181,7 @@ export default function Profile() {
       const data = await res.json();
   
       if (!res.ok) {
-        toast.error(data.message || 'Failed to update profile.');
-        return;
+        throw new Error(data.message || 'Failed to update profile.');
       }
   
       setUser((prevUser) => ({
@@ -202,9 +191,10 @@ export default function Profile() {
       }));
   
       setEditProfileModal(false);
-      toast.success('Profile updated successfully!');
+      return true; // Indicate success
     } catch (err) {
-      toast.error('An error occurred while updating your profile.');
+      toast.error(err.message || 'An error occurred while updating your profile.');
+      throw err; // Re-throw to be caught in the modal
     }
   };
   
@@ -221,18 +211,18 @@ export default function Profile() {
         },
       });
   
-      if (res.ok) {
-        Cookies.remove('auth_token');
-        toast.success('Account deleted successfully!');
-        router.push('/login');
-      } else {
+      if (!res.ok) {
         const data = await res.json();
-        setError(data.error || 'Failed to delete account.');
-        toast.error(data.error || 'Something went wrong. Please try again.');
+        throw new Error(data.error || 'Failed to delete account.');
       }
+  
+      Cookies.remove('auth_token');
+      toast.success('Account deleted successfully!');
+      router.push('/login');
+      return true; // Indicate success
     } catch (err) {
-      setError('An error occurred while deleting your account.');
-      toast.error('Something went wrong. Please try again.');
+      toast.error(err.message || 'Something went wrong. Please try again.');
+      throw err; // Re-throw to be caught in the modal
     }
   };
 
@@ -278,7 +268,6 @@ export default function Profile() {
     handleUpdateProfile={handleUpdateProfile}
   />
 )}
-
 {editJokeModal && (
         <EditJokeModal
           editedJokeContent={editedJokeContent}
