@@ -4,7 +4,7 @@ import { User } from "@/lib/model/User";
 
 export async function GET(req, context) {
   try {
-    const params = await context.params; // ✅ Await params before destructuring
+    const params = await context.params; 
     const { jokes } = params;
 
     if (!jokes) {

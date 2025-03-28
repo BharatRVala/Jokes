@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import Navbar from "@/components/Navbar";
 import Cookies from "js-cookie";
 import jwt from "jsonwebtoken";
-import { toast } from "react-toastify";
+import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
 export default function CreateJoke() {
@@ -90,6 +90,9 @@ export default function CreateJoke() {
           {loading ? "Publishing..." : "Publish"}
         </button>
       </div>
+
+      {/* Toastify Container */}
+      <ToastContainer position="top-right" autoClose={3000} hideProgressBar={false} />
     </div>
   );
 }

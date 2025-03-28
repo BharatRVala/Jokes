@@ -12,11 +12,13 @@ export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false); // State for managing mobile menu
 
   const handleLogout = () => {
-    Cookies.remove('auth_token');
-    toast.success('Logout successful!', {
-      onClose: () => router.push('/'), // Redirect after toast
-      autoClose: 1500,
-    });
+    try {
+      Cookies.remove('auth_token');
+      toast.success('Logout successful!');
+      router.push('/');
+    } catch (error) {
+      toast.error('Something went wrong!');
+    }
   };
 
   const navItems = [

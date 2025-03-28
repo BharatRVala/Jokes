@@ -96,6 +96,15 @@ export default function JokesPage() {
     window.speechSynthesis.speak(speech);
   };
 
+  const handleLikeChange = (jokeId, updatedLikes) => {
+    setAllJokes(prevJokes =>
+      prevJokes.map(joke =>
+        joke._id === jokeId ? { ...joke, likes: updatedLikes, likeCount: updatedLikes.length } : joke
+      )
+    );
+  };
+  
+
   return (
     <div className="min-h-screen bg-gradient-to-r from-blue-50 via-blue-100 to-purple-50">
       <Navbar />
@@ -193,20 +202,13 @@ export default function JokesPage() {
                   <p className="text-lg italic text-gray-700 mb-6">{joke.content}</p>
 
                   <div className="flex flex-col space-y-3">
-                    <LikeButton
-                      jokeId={joke._id}
-                      initialLikes={joke.likes || []}
-                      userId={userId}
-                      onLikeChange={(jokeId, updatedLikes) => {
-                        setAllJokes(prev => 
-                          prev.map(j => 
-                            j._id === jokeId 
-                              ? { ...j, likes: updatedLikes, likeCount: updatedLikes.length } 
-                              : j
-                          )
-                        );
-                      }}
-                    />
+                  <LikeButton
+  jokeId={joke._id}
+  initialLikes={joke.likes || []}
+  userId={userId}
+  onLikeChange={handleLikeChange}
+/>
+
                     <div className="flex space-x-4">
                       <button
                         onClick={() => speakJoke(joke.content, "english")}
