@@ -12,7 +12,7 @@ export default function Home() {
   useEffect(() => {
     const token = Cookies.get('auth_token');
 
-    // Redirect to home page if user is already logged in
+    
     if (token) {
       router.push('/home');
     }

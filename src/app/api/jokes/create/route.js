@@ -8,7 +8,6 @@ export async function POST(req) {
     await dbConnect();
 
     const { content, userId } = await req.json();
-    console.log("Received request to create joke:", { content, userId });
 
     if (!mongoose.Types.ObjectId.isValid(userId)) {
       console.error("Invalid userId format:", userId);
@@ -32,7 +31,6 @@ export async function POST(req) {
     user.jokes.push(newJoke._id);
     await user.save();
 
-    console.log("Joke created successfully:", newJoke);
 
     return new Response(
       JSON.stringify({ message: "Joke published successfully!", joke: newJoke }),

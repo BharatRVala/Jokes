@@ -7,7 +7,6 @@ export async function GET(req, { params }) {
     await dbConnect();
     const { jokeId } = params;
 
-    console.log("Fetching likes for joke:", jokeId);
 
     // ✅ Ensure jokeId is valid before querying MongoDB
     if (!jokeId) {
@@ -22,7 +21,6 @@ export async function GET(req, { params }) {
       return new Response(JSON.stringify({ error: "Joke not found" }), { status: 404 });
     }
 
-    console.log("Likes fetched:", joke.likes);
     return new Response(JSON.stringify({ users: joke.likes }), { status: 200 });
   } catch (error) {
     console.error("Error fetching likes:", error.message);

@@ -33,7 +33,6 @@ export async function GET(req) {
       return new Response(JSON.stringify({ message: 'User not found' }), { status: 404 });
     }
 
-    console.log("User authenticated successfully:", user);
     return new Response(
       JSON.stringify({ user }),
       {

@@ -10,8 +10,9 @@ import { toast } from "react-toastify";
 import EditJokeModal from '@/components/EditJokeModal';
 import EditProfileModal from '@/components/EditProfileModal';
 import DeleteConfirmModal from '@/components/DeleteConfirmModal';
-import ProfileSkeleton from '@/components/ProfileSkeleton'; // Import the skeleton component
-
+import ProfileSkeleton from '@/components/ProfileSkeleton'; 
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 export default function Profile() {
   const [user, setUser] = useState(null);
   const [error, setError] = useState('');
@@ -89,14 +90,19 @@ export default function Profile() {
   };
 
   const handleUpdateJoke = async () => {
-    setJokeError("");
     const token = Cookies.get("auth_token");
-
-    if (!editedJokeContent.trim()) {
-      setJokeError("Joke content cannot be empty.");
+    
+    if (!token) {
+      toast.error('Please login to update jokes');
+      router.push('/login');
       return;
     }
-
+  
+    if (!editedJokeContent.trim()) {
+      toast.error("Joke content cannot be empty.");
+      return;
+    }
+  
     try {
       const res = await fetch("/api/jokes/update", {
         method: "PUT",
@@ -110,22 +116,20 @@ export default function Profile() {
           content: editedJokeContent,
         }),
       });
-
+  
       if (res.ok) {
         const updatedJoke = await res.json();
-        setJokes((prev) =>
-          prev.map((joke) => (joke._id === updatedJoke._id ? updatedJoke : joke))
+        setJokes(prev => 
+          prev.map(joke => joke._id === updatedJoke._id ? updatedJoke : joke)
         );
         setEditJokeModal(false);
         toast.success("Joke updated successfully!");
       } else {
         const data = await res.json();
-        setJokeError(data.error || "Failed to update the joke.");
         toast.error(data.error || "Failed to update the joke.");
       }
     } catch (err) {
-      setJokeError("An error occurred. Please try again.");
-      toast.error("Something went wrong. Please try again.");
+      toast.error("An error occurred. Please try again.");
     }
   };
 
@@ -173,6 +177,12 @@ export default function Profile() {
 
   const handleUpdateProfile = async () => {
     const token = Cookies.get('auth_token');
+    
+    if (!token) {
+      toast.error('Please login to update your profile');
+      router.push('/login');
+      return;
+    }
   
     try {
       const res = await fetch('/api/update', {
@@ -195,12 +205,13 @@ export default function Profile() {
         return;
       }
   
-      setUser((prevUser) => ({
-        ...prevUser,
+      // Update state immediately
+      setUser(prev => ({
+        ...prev,
         userName: data.user.userName,
-        email: data.user.email,
+        email: data.user.email
       }));
-  
+      
       setEditProfileModal(false);
       toast.success('Profile updated successfully!');
     } catch (err) {
@@ -239,6 +250,7 @@ export default function Profile() {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Navbar is always visible */}
+      <ToastContainer />
       <Navbar />
 
       {/* Show skeleton or content based on loading state */}

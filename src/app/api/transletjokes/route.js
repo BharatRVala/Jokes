@@ -11,7 +11,6 @@ export async function POST(req) {
       });
     }
 
-    // मज़ाक को हिंदी में ट्रांसलेट करें
     const translated = await translate(body.joke, { to: "hi" });
 
     return new Response(

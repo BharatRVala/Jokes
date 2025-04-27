@@ -13,13 +13,11 @@ export function AuthProvider({ children }) {
 
   useEffect(() => {
     const token = Cookies.get("auth_token");
-    console.log("Token from cookie:", token);
 
     if (token) {
       try {
         // Decode the token payload
         const decodedToken = jwt.decode(token);
-        console.log("Decoded Token:", decodedToken);
 
         if (decodedToken && decodedToken.userId) {
           setUser({ userId: decodedToken.userId });

@@ -11,7 +11,6 @@ let isConnected = false; // Track the connection status
 // Function to establish the database connection
 export async function dbConnect() {
   if (isConnected) {
-    console.log('Using existing MongoDB connection');
     return;
   }
 
@@ -21,7 +20,6 @@ export async function dbConnect() {
     });
 
     isConnected = db.connections[0].readyState === 1;
-    console.log('Connected to MongoDB');
   } catch (error) {
     console.error('MongoDB connection error:', error.message);
     throw error;

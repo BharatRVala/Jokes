@@ -66,7 +66,7 @@ export default function Signup() {
       <ToastContainer position="top-right" autoClose={3000} />
 
       <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start text-center sm:text-left">
-        <Image src="/next.svg" alt="Next.js logo" width={180} height={38} priority />
+       
 
         <form
           onSubmit={handleSubmit}
