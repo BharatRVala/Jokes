@@ -234,18 +234,19 @@ export default function Profile() {
   
       if (res.ok) {
         Cookies.remove('auth_token');
-        toast.success('Account deleted successfully!');
-        router.push('/login');
+        toast.success('Account deleted successfully!');  // Success toast
+        router.push('/login'); // Redirect after deletion
       } else {
         const data = await res.json();
         setError(data.error || 'Failed to delete account.');
-        toast.error(data.error || 'Something went wrong. Please try again.');
+        toast.error(data.error || 'Something went wrong. Please try again.'); // Error toast
       }
     } catch (err) {
       setError('An error occurred while deleting your account.');
-      toast.error('Something went wrong. Please try again.');
+      toast.error('Something went wrong. Please try again.');  // Error toast
     }
   };
+  
 
   return (
     <div className="min-h-screen bg-gray-50">
